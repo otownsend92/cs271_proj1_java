@@ -61,7 +61,6 @@ public class ClientServer implements Runnable {
             }
         }
         
-        // Start with a new thread to listen for things
         Thread listenerThread = new Thread() {
             public void run() {
                 System.out.println("Entering listener thread...");
@@ -85,6 +84,7 @@ public class ClientServer implements Runnable {
                 }
             }  
         };
+        // Start the listener thread
         listenerThread.start();
 
         // Start main for input
