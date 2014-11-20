@@ -14,53 +14,23 @@ public class ClientServer implements Runnable {
     private static double balance = 0.0;
     private static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
     
-    String clientSentence;
-    String capitalizedSentence;
-
+    String clientSentence, capitalizedSentence;
     Socket csocket;
-    
-    
+
     ClientServer(Socket csocket) {
         this.csocket = csocket;
     }
 
     public static void main(String[] args) throws Exception {
 
+        // Init
         ServerSocket welcomeSocket = new ServerSocket(12002);    
         System.out.println("waiting for clients...");
         String inputLine = null;
         InputStreamReader isr = new InputStreamReader(System.in);
         BufferedReader br = new BufferedReader(isr);
         
-        while(true) {
-            System.out.print("> ");
-            try {
-                inputLine = br.readLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            String[] input = inputLine.split("\\s+");
-            
-            if(input[0].equals("deposit")) {
-                System.out.println("Depositing: " + input[1]);
-                balance += Double.parseDouble(input[1]);
-            }
-            
-            else if(input[0].equals("withdraw")) {
-                System.out.println("Withdrawing: " + input[1]);
-                balance -= Double.parseDouble(input[1]);
-            }
-            
-            else if(input[0].equals("balance")) {
-                System.out.println("Balance is: " + balance);
-            }
-            
-            else if(input[0].equals("quit")) {
-                System.out.println("Quitting...");
-                System.exit(0);
-            }
-        }
-        
+        // Listener thread stuff
         Thread listenerThread = new Thread() {
             public void run() {
                 System.out.println("Entering listener thread...");
@@ -85,10 +55,37 @@ public class ClientServer implements Runnable {
             }  
         };
         // Start the listener thread
-        listenerThread.start();
+        listenerThread.start();                        
 
         // Start main for input
-        
+        while(true) {
+            System.out.print("> ");
+            try {
+                inputLine = br.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String[] input = inputLine.split("\\s+");
+
+            if(input[0].equals("deposit")) {
+                System.out.println("Depositing: " + input[1]);
+                balance += Double.parseDouble(input[1]);
+            }
+
+            else if(input[0].equals("withdraw")) {
+                System.out.println("Withdrawing: " + input[1]);
+                balance -= Double.parseDouble(input[1]);
+            }
+
+            else if(input[0].equals("balance")) {
+                System.out.println("Balance is: " + balance);
+            }
+
+            else if(input[0].equals("quit")) {
+                System.out.println("Quitting...");
+                System.exit(0);
+            }
+        }       
     }
     
     public void run() {
