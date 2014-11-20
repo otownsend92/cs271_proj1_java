@@ -16,6 +16,7 @@ public class ClientServer implements Runnable {
     
     String clientSentence;
     String capitalizedSentence;
+
     Socket csocket;
     
     
@@ -24,6 +25,7 @@ public class ClientServer implements Runnable {
     }
 
     public static void main(String[] args) throws Exception {
+
         ServerSocket welcomeSocket = new ServerSocket(12002);    
         System.out.println("waiting for clients...");
         String inputLine = null;
@@ -58,12 +60,44 @@ public class ClientServer implements Runnable {
                 System.exit(0);
             }
         }
+        
+        // Start with a new thread to listen for things
+        Thread listenerThread = new Thread() {
+            public void run() {
+                System.out.println("Entering listener thread...");
+                ServerSocket welcomeSocket = null;
+                try {
+                    welcomeSocket = new ServerSocket(12002);    
+                } catch (IOException ex) {
+                    System.out.println(ex);
+                }
+                
+                System.out.println("Waiting for clients...");
+                while (true) {
+                    Socket connectionSocket = null;
+                    try {
+                        connectionSocket = welcomeSocket.accept();
+                    } catch (IOException ex) {
+                        System.out.println(ex);
+                    }
+                    System.out.println("Connected.");
+                    new Thread(new ClientServer(connectionSocket)).start();
+                }
+            }  
+        };
+        listenerThread.start();
+
+        // Start main for input
+        
     }
     
     public void run() {
         try {
-            BufferedReader inFromClient =
-            new BufferedReader(new InputStreamReader(csocket.getInputStream()));
+            System.out.println("Spawning new handler thread...");
+            String clientSentence;
+            String capitalizedSentence;
+    
+            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(csocket.getInputStream()));
             DataOutputStream outToClient = new DataOutputStream(csocket.getOutputStream());
             clientSentence = inFromClient.readLine();
             System.out.println("Received: " + clientSentence);
