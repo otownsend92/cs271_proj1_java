@@ -24,8 +24,6 @@ public class ClientServer implements Runnable {
     public static void main(String[] args) throws Exception {
 
         // Init
-        ServerSocket welcomeSocket = new ServerSocket(12002);    
-        System.out.println("waiting for clients...");
         String inputLine = null;
         InputStreamReader isr = new InputStreamReader(System.in);
         BufferedReader br = new BufferedReader(isr);
