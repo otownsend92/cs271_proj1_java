@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientServer implements Runnable {   
     
@@ -13,6 +15,7 @@ public class ClientServer implements Runnable {
     private static int leader = serverID;   // assigning self to leader
     private static double balance = 0.0;
     private static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
+    public static int portn;
     
     String clientSentence, capitalizedSentence;
     Socket csocket;
@@ -23,12 +26,12 @@ public class ClientServer implements Runnable {
 
     public static void main(String[] args) throws Exception {
 
-        // Init
-        ServerSocket welcomeSocket = new ServerSocket(12002);    
-        System.out.println("waiting for clients...");
+        // Init   
         String inputLine = null;
         InputStreamReader isr = new InputStreamReader(System.in);
         BufferedReader br = new BufferedReader(isr);
+        portn = Integer.parseInt(args[0]);
+        System.out.println("Connecting to port number: " + portn);
         
         // Listener thread stuff
         Thread listenerThread = new Thread() {
@@ -36,7 +39,7 @@ public class ClientServer implements Runnable {
                 System.out.println("Entering listener thread...");
                 ServerSocket welcomeSocket = null;
                 try {
-                    welcomeSocket = new ServerSocket(12002);    
+                    welcomeSocket = new ServerSocket(portn);    
                 } catch (IOException ex) {
                     System.out.println(ex);
                 }
@@ -80,6 +83,11 @@ public class ClientServer implements Runnable {
             else if(input[0].equals("balance")) {
                 System.out.println("Balance is: " + balance);
             }
+            
+            else if(input[0].equals("send")) {
+                // send message input[1] to server at port input[2]
+                sendTo(input[1], input[2]);
+            }
 
             else if(input[0].equals("quit")) {
                 System.out.println("Quitting...");
@@ -98,8 +106,9 @@ public class ClientServer implements Runnable {
             DataOutputStream outToClient = new DataOutputStream(csocket.getOutputStream());
             clientSentence = inFromClient.readLine();
             System.out.println("Received: " + clientSentence);
-            capitalizedSentence = clientSentence.toUpperCase() + '\n';
-            outToClient.writeBytes(capitalizedSentence);
+                    
+            //capitalizedSentence = clientSentence.toUpperCase() + '\n';
+            //outToClient.writeBytes(capitalizedSentence);
         }
         
         catch (IOException e) {
@@ -108,9 +117,11 @@ public class ClientServer implements Runnable {
     }
     
     
-    public void sendToLeader(String m) throws Exception {
+    
+    public static void sendTo(String m, String port) throws Exception {
         
-        Socket clientSocket = new Socket("localhost", serverPorts[leader]);
+        int p = Integer.parseInt(port);
+        Socket clientSocket = new Socket("localhost", p); //serverPorts[leader]);
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         outToServer.writeBytes(m);
