@@ -108,6 +108,9 @@ public class ClientServer implements Runnable {
                     
             //capitalizedSentence = clientSentence.toUpperCase() + '\n';
             //outToClient.writeBytes(capitalizedSentence);
+            
+            // Going to need to handle the received messages in here
+            
         }
         
         catch (IOException e) {
