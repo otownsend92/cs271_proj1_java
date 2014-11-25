@@ -26,7 +26,6 @@ public class ClientServer implements Runnable {
 
     public static void main(String[] args) throws Exception {
 
-        // Init   
         String inputLine = null;
         InputStreamReader isr = new InputStreamReader(System.in);
         BufferedReader br = new BufferedReader(isr);
