@@ -132,5 +132,16 @@ public class ClientServer implements Runnable {
         clientSocket.close();
     }
     
-    
+    public static void sendToAll(String prepareMsg) throws Exception {
+        
+        for(int i = 0; i < 5; ++i) {
+
+            int p = serverPorts[i];
+            Socket clientSocket = new Socket("localhost", p); //serverPorts[leader]);
+            DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            outToServer.writeBytes(prepareMsg);
+            clientSocket.close();
+        }
+    }
 }
