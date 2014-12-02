@@ -1,11 +1,11 @@
 package clientserver;
 
+// string cmd = "scp -r -i ~/.ssh/id_rsa ucsb_276c@"+address[i]+":/home/ucsb_276c/p2 ~/Dropbox/Current\\ Documents/cs276/
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ClientServer implements Runnable {   
     

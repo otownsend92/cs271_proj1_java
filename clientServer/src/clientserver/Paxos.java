@@ -1,17 +1,13 @@
 package clientserver;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class Paxos {
 
-    private class Value {
-
+    public class Value {
         double amount;
         String type;
         int logPosition = -1;
     }
-
+    
     // keep track of number of acks - check when matches majority value
     int ackCount = 0;
     // generateNum is incremeneted by 1 each round - used f]to generate proposal numbers in conjunction with serverID
@@ -28,16 +24,18 @@ public class Paxos {
     boolean leader = false;
 
     /*
-    LEADER'S PERSPECTIVE
-    Receives 'msg' from ClientServer and uses it to generate a Value object val
-    to be proposed to all other servers.
-    */
+     LEADER'S PERSPECTIVE
+     Receives 'msg' from ClientServer and uses it to generate a Value object val
+     to be proposed to all other servers.
+     */
     public void prepareMsg(String msg) throws Exception {
         String[] message = msg.split(" ");
         val.type = message[0];
         val.amount = Double.parseDouble(message[1]);
-        val.logPosition = 0; //need from log class
-
+        
+        // Need to get postion from log
+        val.logPosition = Log.transactionlog.size();
+                
         String prepareMsg = "prepare " + generateNum + " server_id"; //change server_id
         ClientServer.sendToAll(prepareMsg);
 
@@ -45,10 +43,10 @@ public class Paxos {
     }
 
     /*
-    LEADER'S PERSPECTIVE
-    Called when leader loses election. Will generate a new proposal number (prepareMsg)
-    and use the same Value object val in a new round of prepares.
-    */
+     LEADER'S PERSPECTIVE
+     Called when leader loses election. Will generate a new proposal number (prepareMsg)
+     and use the same Value object val in a new round of prepares.
+     */
     public void regeneratePrepare() throws Exception {
         String prepareMsg = "prepare " + generateNum + " server_id"; //change server_id
         ClientServer.sendToAll(prepareMsg);
@@ -57,10 +55,10 @@ public class Paxos {
     }
 
     /*
-    LISTENER'S PERSPECTIVE
-    Is called when server receives messages in ClientServer from other servers.
-    Will call various other handler methods based on message.
-    */
+     LISTENER'S PERSPECTIVE
+     Is called when server receives messages in ClientServer from other servers.
+     Will call various other handler methods based on message.
+     */
     public void handleMsg(String msg) {
 
         String[] message = msg.split(" ");
@@ -71,36 +69,38 @@ public class Paxos {
             handleAck(message);
         } else if (message[0].equals("accept")) {
             handleAccept(message);
+        } else if (message[0].equals("finalaccept")) {
+            handleAccept(message);
         }
     }
 
     /*
-    COHORT'S PERSPECTIVE
-    If receive a prepare message from some server, check if you haven't already
-    agreed to higher ballot number. Regardless if you have or have not, reply
-    with ack and most recent/highest ballot number seen so far with its value.
-    If haven't accepted value
-    */
+     COHORT'S PERSPECTIVE
+     If receive a prepare message from some server, check if you haven't already
+     agreed to higher ballot number. Regardless if you have or have not, reply
+     with ack and most recent/highest ballot number seen so far with its value.
+     If haven't accepted value
+     */
     public void handlePrepare(String[] message) {
         int ballotNum = Integer.parseInt(message[1]);
         int ballotNumServerId = Integer.parseInt(message[2]);
         if ((ballotNum > minBallotNum) || ((ballotNum == minBallotNum) && (minBallotNumServerId > ballotNumServerId))) {
             minBallotNum = ballotNum;
-     
+
             /*
-            TODO:
-            If have already accepted proposal - set reply Value value to this val,
-            otherwise, set it to null so handleAck will know if some other erver has accepted
-            a value or not.
-            */
+             TODO:
+             If have already accepted proposal - set reply Value value to this val,
+             otherwise, set it to null so handleAck will know if some other erver has accepted
+             a value or not.
+             */
         }
-        String reply = 
-                "ack " + 
-                minBallotNum + " " + 
-                minBallotNumServerId + " " + 
-                acceptedVal.type + " " + 
-                acceptedVal.amount + " " + 
-                acceptedVal.logPosition;
+        String reply
+                = "ack "
+                + minBallotNum + " "
+                + minBallotNumServerId + " "
+                + acceptedVal.type + " "
+                + acceptedVal.amount + " "
+                + acceptedVal.logPosition;
         try {
             ClientServer.sendTo(reply, "blah port"); //fix  
         } catch (Exception ex) {
@@ -108,61 +108,114 @@ public class Paxos {
         }
     }
 
-    
     /*
-    LEADER'S PERSPECTIVE and COHORT'S PERSPECTIVE
-        (Maybe we should split this up into two methods?)
+     LEADER'S PERSPECTIVE and COHORT'S PERSPECTIVE
+     (Maybe we should split this up into two methods?)
     
-    If leader and if have received 'ack' from majority:
-        if all vals in acks are null, good to go: myVal = initial proposed value
-        else there is already an accepted value:
-            set myVal to accepted, send accept(myVal), rerun Paxos with original proposed value
-    */
+     If leader and if have received 'ack' from majority:
+     if all vals in acks are null, good to go: myVal = initial proposed value
+     else there is already an accepted value:
+     set myVal to accepted, send accept(myVal), rerun Paxos with original proposed value
+     */
     public void handleAck(String[] message) {
-        
+
         if (leader) {
-            
+
             // I think I'm the leader
             int receivedBalNum = Integer.parseInt(message[1]);
             int receivedBalNumServerId = Integer.parseInt(message[2]);
             if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > "server_id"/*change*/))) {
                 // Lost election
-                
+
                 // Set myVal to the node val who won election
-                            
+                // This is the value object
                 myVal.type = message[3];
                 myVal.amount = Double.parseDouble(message[4]);
                 myVal.logPosition = Integer.parseInt(message[5]);
-                
-                String concedeMsg = "accept "; //add more to accept 
-                
-                // Try to prepare another proposal
-                generateNum = receivedBalNum + 1;
-                regeneratePrepare();
+
+                String concedeMsg = "accept "
+                        + receivedBalNum + " "
+                        + receivedBalNumServerId + " "
+                        + myVal.type + " "
+                        + myVal.amount + " "
+                        + myVal.logPosition;
+                try {
+                    // Accept the higher ballot
+                    ClientServer.sendToAll(concedeMsg);
+
+                    // Try to prepare another proposal
+                    generateNum = receivedBalNum + 1;
+                    regeneratePrepare();
+                } catch (Exception ex) {
+                    System.out.println(ex);
+                }
 
             } else {
                 // Won election                                              
                 ackCount++;
-                if((double)ackCount/(double)numProc > 0.5) {
+                if ((double) ackCount / (double) numProc > 0.5) {
                     // Consensus
-                    
+                    String winMsg = "accept "
+                            + receivedBalNum + " "
+                            + receivedBalNumServerId + " "
+                            + myVal.type + " "
+                            + myVal.amount + " "
+                            + myVal.logPosition;
+                    try {
+                        // I won
+                        ClientServer.sendToAll(winMsg);
+
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                    }
+
                     ackCount = 0;
                 }
             }
 
         } else {
-            // Not leader
+            // Not leader - do nothing
 
         }
     }
 
     /*
-    COHORT'S PERSPECTIVE
+     COHORT'S PERSPECTIVE
     
-    (Possibly set acceptedVal to default values/null so next election round
-    knows that nothing has been accepted so far in new round)
-    */
+     (Possibly set acceptedVal to default values/null so next election round
+     knows that nothing has been accepted so far in new round)
+     */
     public void handleAccept(String[] message) {
 
+        int receivedBalNum = Integer.parseInt(message[1]);
+        int receivedBalNumServerId = Integer.parseInt(message[2]);
+        if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > "server_id"/*change*/))) {
+            acceptedVal.type = message[3];
+            acceptedVal.amount = Double.parseDouble(message[4]);
+            acceptedVal.logPosition = Integer.parseInt(message[5]);
+
+            String cohortAcceptMsg = "finalaccept "
+                    + receivedBalNum + " "
+                    + receivedBalNumServerId + " "
+                    + acceptedVal.type + " "
+                    + acceptedVal.amount + " "
+                    + acceptedVal.logPosition;
+
+            try {
+                ClientServer.sendToAll(cohortAcceptMsg);
+            } catch (Exception ex) {
+                System.out.println(ex);
+            }
+        }
+
+    }
+    
+    public void handleFinalAccept(String[] message) {
+        // We're done if we get this step, save the final value
+        
+        acceptedVal.type = message[3];
+        acceptedVal.amount = Double.parseDouble(message[4]);
+        acceptedVal.logPosition = Integer.parseInt(message[5]);
+        
     }
 }
