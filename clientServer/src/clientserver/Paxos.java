@@ -1,9 +1,11 @@
 package clientserver;
 
+import java.io.Serializable;
+
 public class Paxos {
 
-    public class Value {
-        double amount;
+    public class Value implements Serializable {
+        double amount = 0.0;
         String type;
         int logPosition = -1;
     }
@@ -34,7 +36,7 @@ public class Paxos {
         val.amount = Double.parseDouble(message[1]);
         
         // Need to get postion from log
-        val.logPosition = Log.transactionlog.size();
+        val.logPosition = Log.transactionLog.size();
                 
         String prepareMsg = "prepare " + generateNum + " server_id"; //change server_id
         ClientServer.sendToAll(prepareMsg);
@@ -217,5 +219,6 @@ public class Paxos {
         acceptedVal.amount = Double.parseDouble(message[4]);
         acceptedVal.logPosition = Integer.parseInt(message[5]);
         
+        Log.addToTransactionLog(acceptedVal);
     }
 }

@@ -80,9 +80,20 @@ public class ClientServer implements Runnable {
             }
 
             else if(input[0].equals("balance")) {
-                System.out.println("Balance is: " + balance);
+                System.out.println("Balance is: " + Log.getBalance());
             }
             
+            else if(input[0].equals("fail")) {
+                System.out.println("Failing...");
+                fail();
+            }
+            
+            else if(input[0].equals("unfail")) {
+                System.out.println("Unfailing...");
+                unfail();
+            }
+            
+            // added simply for testing 
             else if(input[0].equals("send")) {
                 // send message input[1] to server at port input[2]
                 sendTo(input[1], input[2]);
@@ -118,6 +129,13 @@ public class ClientServer implements Runnable {
         }
     }
     
+    public static void fail() {
+        
+    }
+    
+    public static void unfail() {
+        
+    }
     
     
     public static void sendTo(String m, String port) throws Exception {
