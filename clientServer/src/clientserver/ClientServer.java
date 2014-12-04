@@ -19,6 +19,8 @@ public class ClientServer implements Runnable {
     
     String clientSentence, capitalizedSentence;
     Socket csocket;
+    
+    static Thread listenerThread;
 
     ClientServer(Socket csocket) {
         this.csocket = csocket;
@@ -26,6 +28,8 @@ public class ClientServer implements Runnable {
 
     public static void main(String[] args) throws Exception {
 
+        System.out.println("~~~~~~~~~~~~~~~~~~~" + " CS271 Paxos "+ "~~~~~~~~~~~~~~~~~~~");
+        // Check for log file
         String inputLine = null;
         InputStreamReader isr = new InputStreamReader(System.in);
         BufferedReader br = new BufferedReader(isr);
@@ -34,7 +38,7 @@ public class ClientServer implements Runnable {
         System.out.println("Starting server with Id: " + serverId);
         
         // Listener thread stuff
-        Thread listenerThread = new Thread() {
+        listenerThread = new Thread() {
             public void run() {
                 System.out.println("Entering listener thread...");
                 ServerSocket welcomeSocket = null;
@@ -148,14 +152,22 @@ public class ClientServer implements Runnable {
     }
     
     public static void fail() {
-        
+        System.out.println("USER FAIL: Stopping the listener thread.");
+        listenerThread.stop();
     }
     
     public static void unfail() {
+        System.out.println("USER UNFAIL: Starting the listener thread again.");
+        listenerThread.start();
+        // get size from local log
+        // poll others for largest size
+        // if local is up to date, import data
+        // else, get data from the most up to date process
+        
         
     }
     
-    
+    // switch up ports and stuffs
     public static void sendTo(String m, String port) throws Exception {
         
         int p = Integer.parseInt(port);
