@@ -14,6 +14,7 @@ public class ClientServer implements Runnable {
     private static int procn;
     private static int leader = serverID;   // assigning self to leader
     public static double balance = 0.0;
+    public static String[] serverIPs = {"123.123.123"};
     public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
     public static int portn;
     
