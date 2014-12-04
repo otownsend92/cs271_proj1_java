@@ -11,7 +11,7 @@ public class Paxos {
     }
     
     // keep track of number of acks - check when matches majority value
-    int ackCount = 0;
+    double ackCount = 0;
     // generateNum is incremeneted by 1 each round - used f]to generate proposal numbers in conjunction with serverID
     int generateNum = 0;
     // value object that is created at  beginning of proposal 
@@ -40,7 +40,7 @@ public class Paxos {
                 
         String prepareMsg = "prepare " + generateNum + " server_id"; //change server_id
         ClientServer.sendToAll(prepareMsg);
-
+        leader = true; //??
         generateNum++;
     }
 
@@ -124,11 +124,11 @@ public class Paxos {
     public void handleAck(String[] message) {
 
         if (leader) {
-
             // I think I'm the leader
             int receivedBalNum = Integer.parseInt(message[1]);
             int receivedBalNumServerId = Integer.parseInt(message[2]);
-            if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > "server_id"/*change*/))) {
+            // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
+            if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > ClientServer.serverId))) {
                 // Lost election
 
                 // Set myVal to the node val who won election
@@ -146,7 +146,7 @@ public class Paxos {
                 try {
                     // Accept the higher ballot
                     ClientServer.sendToAll(concedeMsg);
-
+                    leader = false;
                     // Try to prepare another proposal
                     generateNum = receivedBalNum + 1;
                     regeneratePrepare();
@@ -157,7 +157,7 @@ public class Paxos {
             } else {
                 // Won election                                              
                 ackCount++;
-                if ((double) ackCount / (double) numProc > 0.5) {
+                if (((double) ackCount) / (HeartBeat.numProc) > 0.5) {
                     // Consensus
                     String winMsg = "accept "
                             + receivedBalNum + " "
@@ -168,18 +168,17 @@ public class Paxos {
                     try {
                         // I won
                         ClientServer.sendToAll(winMsg);
-
+                        leader = true; // ???????????? not sure
                     } catch (Exception ex) {
                         System.out.println(ex);
-                    }
-
+                    }                   
                     ackCount = 0;
                 }
             }
 
         } else {
             // Not leader - do nothing
-
+            
         }
     }
 
@@ -193,7 +192,9 @@ public class Paxos {
 
         int receivedBalNum = Integer.parseInt(message[1]);
         int receivedBalNumServerId = Integer.parseInt(message[2]);
-        if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > "server_id"/*change*/))) {
+        
+        // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
+        if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > ClientServer.serverId))) {
             acceptedVal.type = message[3];
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
@@ -222,5 +223,6 @@ public class Paxos {
         acceptedVal.logPosition = Integer.parseInt(message[5]);
         
         Log.addToTransactionLog(acceptedVal);
+        leader = false;
     }
 }

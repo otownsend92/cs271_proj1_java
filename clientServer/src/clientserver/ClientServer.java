@@ -9,14 +9,13 @@ import java.io.*;
 
 public class ClientServer implements Runnable {   
     
-    private static int serverID;
-    private static int roundn;
-    private static int procn;
-    private static int leader = serverID;   // assigning self to leader
+    // make new paxos object
+    Paxos paxosObject = new Paxos();
+    
+    public static int serverId;
     public static double balance = 0.0;
-    public static String[] serverIPs = {"123.123.123"};
+    public static String[] serverIPs = {"123.123.123","123.123.123","123.123.123","123.123.123","123.123.123" };
     public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
-    public static int portn;
     
     String clientSentence, capitalizedSentence;
     Socket csocket;
@@ -30,8 +29,9 @@ public class ClientServer implements Runnable {
         String inputLine = null;
         InputStreamReader isr = new InputStreamReader(System.in);
         BufferedReader br = new BufferedReader(isr);
-        portn = Integer.parseInt(args[0]);
-        System.out.println("Connecting to port number: " + portn);
+        // this is assigning the local server id
+        serverId = Integer.parseInt(args[0]);
+        System.out.println("Starting server with Id: " + serverId);
         
         // Listener thread stuff
         Thread listenerThread = new Thread() {
@@ -39,7 +39,7 @@ public class ClientServer implements Runnable {
                 System.out.println("Entering listener thread...");
                 ServerSocket welcomeSocket = null;
                 try {
-                    welcomeSocket = new ServerSocket(portn);    
+                    welcomeSocket = new ServerSocket(serverPorts[serverId]);    
                 } catch (IOException ex) {
                     System.out.println(ex);
                 }
@@ -57,10 +57,25 @@ public class ClientServer implements Runnable {
                 }
             }  
         };
+        
+        // Heartbeat thread stuff
+        Thread heartBeatThread = new Thread() {
+            public void run() {
+                try {
+                    System.out.println("Entering heartbeat thread...");
+                    HeartBeat.pingAll(); // this should update the "numProc" int in HeartBeat.java
+                } catch (IOException ex) {
+                    System.out.println(ex);
+                }
+            }  
+        };
+        
         // Start the listener thread
         listenerThread.start();                        
-
-        // Start main for input
+        // Start the heartbeat thread
+        heartBeatThread.start();
+        
+        // Start main thread for input
         while(true) {
             System.out.print("> ");
             try {
@@ -106,7 +121,7 @@ public class ClientServer implements Runnable {
             }
         }       
     }
-    
+
     public void run() {
         try {
             System.out.println("Spawning new handler thread...");
@@ -124,6 +139,7 @@ public class ClientServer implements Runnable {
             // Going to need to handle the received messages in here
             // This includes heartbeat 'pings'
             
+            paxosObject.handleMsg(clientSentence);            
         }
         
         catch (IOException e) {
