@@ -73,6 +73,8 @@ public class Paxos {
             handleAccept(message);
         } else if (message[0].equals("finalaccept")) {
             handleAccept(message);
+        } else if (message[0].equals("ping")) {
+            HeartBeat.handlePing(message); //heartbeat class
         }
     }
 
