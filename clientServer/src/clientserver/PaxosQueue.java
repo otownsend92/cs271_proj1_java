@@ -16,7 +16,7 @@ public class PaxosQueue {
     private Vector<Paxos.Value> transactionQueue;
 	
 	public PaxosQueue() {
-		this.transactionQueue = new Vector<Paxos.Value>();
+		transactionQueue = new Vector<Paxos.Value>();
 	}
 	
 	public boolean isEmpty() {
