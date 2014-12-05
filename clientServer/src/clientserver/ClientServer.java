@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientServer implements Runnable {   
     
@@ -65,11 +67,18 @@ public class ClientServer implements Runnable {
         // Heartbeat thread stuff
         Thread heartBeatThread = new Thread() {
             public void run() {
-                try {
-                    System.out.println("Entering heartbeat thread...");
-                    HeartBeat.pingAll(); // this should update the "numProc" int in HeartBeat.java
-                } catch (IOException ex) {
-                    System.out.println(ex);
+                while(true) {
+                    // runs forever in a loop, and waits for let's say, 3 sec before running again?
+                    try {
+                        System.out.println("Entering heartbeat thread...");
+                        HeartBeat.pingAll(); // this should update the "numProc" int in HeartBeat.java
+                        
+                        // wait 3s
+                        sleep(3000);
+                    } catch (IOException | InterruptedException ex) {
+                        System.out.println(ex);
+                    }
+                    
                 }
             }  
         };
@@ -158,13 +167,14 @@ public class ClientServer implements Runnable {
     
     public static void unfail() {
         System.out.println("USER UNFAIL: Starting the listener thread again.");
+        // begin listening again
         listenerThread.start();
         // get size from local log
         // poll others for largest size
         // if local is up to date, import data
         // else, get data from the most up to date process
         
-        
+        // also need to prevent user from sending messages?
     }
     
     // switch up ports and stuffs
