@@ -53,7 +53,7 @@ public class ClientServer implements Runnable {
                 
                 System.out.println("Waiting for clients...");
                 while (listenerTrue) {
-                    Socket connectionSocket = null;                    
+                    Socket connectionSocket = new Socket();                   
                     try {
                         connectionSocket.setSoTimeout(100);
                         connectionSocket = welcomeSocket.accept();
