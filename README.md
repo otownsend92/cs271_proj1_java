@@ -7,6 +7,5 @@ CS 271 Project TODO:
 	•	fail/unfail methods
 	•	create log catch up mechanism
 	•	be able to write log to disk (serializability)
-	⁃	write to disk after every paxos transaction
+		⁃	write to disk after every paxos transaction
 	•	add queue functionality
-	•	
