@@ -62,12 +62,17 @@ public class Log {
     /*
     Update local balance value.
     */
-    public static void updateBalance(String type, double amt) {
+    public static int updateBalance(String type, double amt) {
         if(type.equals("deposit")) {
             balance += amt;
+            return 1; //successful deposit
         }
-        else {
-            balance -= amt;
+        else { // if withdraw need to check that balance does not go negative
+            if(amt > balance) {
+                // reject
+                return 0; // FAILURE!
+            } else balance -= amt;
+            return -1; //successful withdraw
         }
     }
     
