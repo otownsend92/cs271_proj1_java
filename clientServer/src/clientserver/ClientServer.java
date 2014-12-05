@@ -17,7 +17,7 @@ public class ClientServer implements Runnable {
     
     public static int serverId;
     public static double balance = 0.0;
-    public static String[] serverIPs = {"54.174.164.18", "54.174.167.183", "54.174.201.123", "54.174.164.18", "54.174.164.18", };
+    public static String[] serverIPs = {"54.174.167.183", "54.174.226.59", "54.86.223.159", "54.174.201.123", "54.174.164.18"};
     public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
     
     String clientSentence, capitalizedSentence;
