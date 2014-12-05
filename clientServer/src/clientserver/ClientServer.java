@@ -198,10 +198,11 @@ public class ClientServer implements Runnable {
     }
     
     // switch up ports and stuffs
-    public static void sendTo(String m, String port) throws Exception {
+    public static void sendTo(String m, String serverId) throws Exception {
         
-        int p = Integer.parseInt(port);
-        Socket clientSocket = new Socket("localhost", p); //serverPorts[leader]);
+        int p = serverPorts[Integer.parseInt(serverId)];
+        String serverName = serverIPs[Integer.parseInt(serverId)];
+        Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         outToServer.writeBytes(m);
