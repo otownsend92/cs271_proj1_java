@@ -7,8 +7,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ClientServer implements Runnable {   
     
@@ -19,6 +17,8 @@ public class ClientServer implements Runnable {
     public static double balance = 0.0;
     public static String[] serverIPs = {"54.174.164.18", "54.174.167.183", "54.174.201.123", "54.174.164.18", "54.174.164.18", };
     public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
+    
+    static boolean listenerTrue = true;
     
     String clientSentence, capitalizedSentence;
     Socket csocket;
@@ -52,9 +52,10 @@ public class ClientServer implements Runnable {
                 }
                 
                 System.out.println("Waiting for clients...");
-                while (true) {
-                    Socket connectionSocket = null;
+                while (listenerTrue) {
+                    Socket connectionSocket = null;                    
                     try {
+                        connectionSocket.setSoTimeout(100);
                         connectionSocket = welcomeSocket.accept();
                     } catch (IOException ex) {
                         System.out.println(ex);
@@ -118,7 +119,11 @@ public class ClientServer implements Runnable {
                 try {
                     amount = Double.parseDouble(input[1].substring(1, input[1].length()-1));
                     System.out.println("Withdrawing: " + amount);
-                    balance -= amount;
+                    if(Log.balance < amount) {
+                        System.out.println("Withdraw of: " + amount + " failed. Insufficient funds.");
+                    } else {
+                        // do stuff
+                    }
                 }
                 catch (Exception e) {
                     System.out.println("Invalid command.");
@@ -176,13 +181,14 @@ public class ClientServer implements Runnable {
     
     public static void fail() {
         System.out.println("USER FAIL: Stopping the listener thread.");
-        listenerThread.stop();
+        listenerTrue = false;
     }
     
     public static void unfail() {
         System.out.println("USER UNFAIL: Starting the listener thread again.");
         // begin listening again
-        listenerThread.start();
+        listenerTrue = true;
+        
         // get size from local log
         // poll others for largest size
         // if local is up to date, import data
