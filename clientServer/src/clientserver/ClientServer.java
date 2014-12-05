@@ -16,7 +16,7 @@ public class ClientServer implements Runnable {
     
     public static int serverId;
     public static double balance = 0.0;
-    public static String[] serverIPs = {"123.123.123","123.123.123","123.123.123","123.123.123","123.123.123" };
+    public static String[] serverIPs = {"54.174.164.18", "54.174.167.183", "54.174.201.123", "54.174.164.18", "54.174.164.18", };
     public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
     
     String clientSentence, capitalizedSentence;
@@ -195,7 +195,7 @@ public class ClientServer implements Runnable {
         for(int i = 0; i < 5; ++i) {
 
             int p = serverPorts[i];
-            Socket clientSocket = new Socket("localhost", p); //serverPorts[leader]);
+            Socket clientSocket = new Socket(serverIPs[i], p); 
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             outToServer.writeBytes(prepareMsg);
