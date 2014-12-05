@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class Paxos {
 
-    public class Value implements Serializable {
+    public class Value {
         double amount = 0.0;
         String type;
         int logPosition = -1;

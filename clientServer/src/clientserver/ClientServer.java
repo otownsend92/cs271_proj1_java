@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -96,16 +97,32 @@ public class ClientServer implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            String[] input = inputLine.split("\\s+");
+            String regex = "(?=\\()|(?<=\\)\\d)";
+            String[] input = inputLine.split(regex);
+            System.out.println(Arrays.toString(input));
 
             if(input[0].equals("deposit")) {
-                System.out.println("Depositing: " + input[1]);
-                balance += Double.parseDouble(input[1]);
+                double amount;
+                try {
+                    amount = Double.parseDouble(input[1].substring(1, input[1].length()-1));
+                    System.out.println("Depositing: " + amount);
+                    balance += amount;
+                }
+                catch (Exception e) {
+                    System.out.println("Invalid command.");
+                }
             }
 
             else if(input[0].equals("withdraw")) {
-                System.out.println("Withdrawing: " + input[1]);
-                balance -= Double.parseDouble(input[1]);
+                double amount;
+                try {
+                    amount = Double.parseDouble(input[1].substring(1, input[1].length()-1));
+                    System.out.println("Withdrawing: " + amount);
+                    balance -= amount;
+                }
+                catch (Exception e) {
+                    System.out.println("Invalid command.");
+                }
             }
 
             else if(input[0].equals("balance")) {
@@ -145,9 +162,6 @@ public class ClientServer implements Runnable {
             DataOutputStream outToClient = new DataOutputStream(csocket.getOutputStream());
             clientSentence = inFromClient.readLine();
             System.out.println("Received: " + clientSentence);
-                    
-            //capitalizedSentence = clientSentence.toUpperCase() + '\n';
-            //outToClient.writeBytes(capitalizedSentence);
             
             // Going to need to handle the received messages in here
             // This includes heartbeat 'pings'

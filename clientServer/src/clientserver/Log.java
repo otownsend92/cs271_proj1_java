@@ -17,24 +17,6 @@ public class Log {
     String path = "./";
     boolean append_to_file = true;
 
-    /*
-    no idea how this works or if it works at all right now
-    just put it in here for now
-    */
-    public void saveVectorToFile() throws IOException, ClassNotFoundException {
-        
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(transactionLog);
-        oos.close();
-        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-        ObjectInputStream ois = new ObjectInputStream(bais);
-        Vector v2 = (Vector) ois.readObject();
-        Enumeration e = transactionLog.elements();
-        while (e.hasMoreElements()) {
-            System.out.println(e.nextElement());
-        }
-    }
     
     public void writeToFile(String textLine) throws IOException {
         
