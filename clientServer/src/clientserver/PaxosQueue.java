@@ -15,51 +15,29 @@ import java.util.logging.Logger;
  * @author olivertownsend
  */
 public class PaxosQueue {
-    
+
     public static Vector<String[]> transactionQueue;
     public static boolean isProposing = false;
-	
-	public PaxosQueue() {
-		transactionQueue = new Vector<String[]>();
-	}
-	
-	public boolean isEmpty() {
-		return transactionQueue.isEmpty();
-	}
-	
-	public void enqueue(String[] cmd) {
-		transactionQueue.add(cmd);
-	}
-	
-	public void dequeue() {
-		transactionQueue.remove(0);
-	}
-	
-	public String[] peek() {
-		return transactionQueue.get(0);
-	}
-	
-	public void clear() {
-		transactionQueue.removeAllElements();
-	}
-        
-        public static void queueWatcher() {
-            
-            while(true) {
-                
-                // if there are items in the queue and if Paxos isn't currently proposing a value, then propose value
-                if(!transactionQueue.isEmpty() && !isProposing){
-                    String[] newTrans = transactionQueue.get(0);
-                    System.out.println(Arrays.toString(newTrans));
-                    try {
-                        ClientServer.paxosObject.prepareMsg(newTrans);
-                        isProposing = true;
-                        System.out.print(isProposing);
-                    } catch (Exception ex) {
-                        System.out.println(ex);
-                    }
-                }
+
+    public PaxosQueue() {
+        transactionQueue = new Vector<String[]>();
+    }
+
+    public static void queueWatcher() {
+
+        // if there are items in the queue and if Paxos isn't currently proposing a value, then propose value
+        if ((!transactionQueue.isEmpty()) && (!isProposing)) {
+            System.out.print("QUEUE");
+            String[] newTrans = transactionQueue.get(0);
+            System.out.println(Arrays.toString(newTrans));
+            try {
+                ClientServer.paxosObject.prepareMsg(newTrans);
+                isProposing = true;
+                System.out.print(isProposing);
+            } catch (Exception ex) {
+                System.out.println("queueWatcher:" + ex);
             }
         }
-    
+    }
+
 }

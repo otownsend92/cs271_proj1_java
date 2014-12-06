@@ -6,20 +6,23 @@ import java.net.Socket;
 import java.io.*;
 import static java.lang.Thread.sleep;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientServer implements Runnable {
 
     // make new paxos object
     public static Paxos paxosObject = new Paxos();
+    public static PaxosQueue paxosQueueObj = new PaxosQueue();
 
     public static int serverId;
     public static double balance = 0.0;
     public static String[] serverIPs = {
-        "54.174.167.183",
-        "54.174.226.59",
-        "54.86.223.159",
-        "54.174.201.123",
-        "54.174.164.18"};
+        "54.174.167.183", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.167.183  
+        "54.174.226.59",  // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.226.59 
+        "54.86.223.159",  //
+        "54.174.201.123", //
+        "54.174.164.18"}; //
 //    public static String[] serverIpPrivate = {
 //        "ec2-54-174-167-183.compute-1.amazonaws.com",
 //        "ec2-54-174-226-59.compute-1.amazonaws.com",
@@ -53,10 +56,14 @@ public class ClientServer implements Runnable {
 
         // Listener thread stuff
         listenerThread = new Thread() {
-            public void run() {
-                System.out.println("Entering listener thread...");
-
+            public void run() {               
                 System.out.println("Waiting for clients...");
+                try {
+                    // init welcomeSocket ONLY once
+                    welcomeSocket = new ServerSocket(serverPorts[serverId]);
+                } catch (IOException ex) {
+                    System.out.println("Welcome socket: " + ex);
+                }
                 while (true) {
                     if (!listenerTrue) {
                         try {
@@ -67,15 +74,17 @@ public class ClientServer implements Runnable {
                         }
 
                     } else {
-                        try {
-                            welcomeSocket = new ServerSocket(serverPorts[serverId]);
+                        try {                            
                             Socket connectionSocket = new Socket();
                             connectionSocket.setSoTimeout(100);
                             connectionSocket = welcomeSocket.accept();
                             System.out.println("Connected.");
+                            
                             new Thread(new ClientServer(connectionSocket)).start();
+                            
+//                            welcomeSocket.close(); //???
                         } catch (IOException ex) {
-                            System.out.println(ex);
+                            System.out.println("Server socket: " + ex);
                         }
                     }
                 }
@@ -88,13 +97,13 @@ public class ClientServer implements Runnable {
                 while (true) {
                     // runs forever in a loop, and waits for let's say, 3 sec before running again?
                     try {
-                        System.out.println("Entering heartbeat thread...");
+//                        System.out.println("Entering heartbeat thread...");
                         HeartBeat.pingAll(); // this should update the "numProc" int in HeartBeat.java
 
                         // wait 3s
                         sleep(3000);
                     } catch (IOException | InterruptedException ex) {
-                        System.out.println(ex);
+//                        System.out.println(ex);
                     }
 
                 }
@@ -104,8 +113,10 @@ public class ClientServer implements Runnable {
         // Queue thread stuff
         Thread queueWatchdogThread = new Thread() {
             public void run() {
-                System.out.println("Starting queuewatcher thread");
-                PaxosQueue.queueWatcher();
+                while(true) {
+//                    System.out.println("Starting queuewatcher thread");
+                    paxosQueueObj.queueWatcher();
+                }
             }
         };
 
@@ -131,24 +142,24 @@ public class ClientServer implements Runnable {
             if (input[0].equals("deposit")) {
                 double amount;
                 try {
-                    amount = Double.parseDouble(input[1].substring(1, input[1].length() - 1));
-                    System.out.println("Depositing: " + amount);
+                    input[1] = (input[1].substring(1, input[1].length() - 1));
+                    System.out.println("Depositing: " + input[1]);
                     // Adding to queue
-                    PaxosQueue.transactionQueue.add(input);
+                    paxosQueueObj.transactionQueue.add(input);
                 } catch (Exception e) {
-                    System.out.println("Invalid command.");
+                    System.out.println("Try deposit: " + e);
                 }
             } else if (input[0].equals("withdraw")) {
                 double amount;
                 try {
-                    amount = Double.parseDouble(input[1].substring(1, input[1].length() - 1));                   
-                    if (Log.balance < amount) {
+                    input[1] = (input[1].substring(1, input[1].length() - 1));                   
+                    if (Log.balance < Double.parseDouble(input[1])) {
                         // Nonsufficient funds
-                        System.out.println("Withdraw of: " + amount + " failed. Insufficient funds.");
+                        System.out.println("Withdraw of: " + input[1] + " failed. Insufficient funds.");
                     } else {
                         // Adding to queue
-                        System.out.println("Withdrawing: " + amount);
-                        PaxosQueue.transactionQueue.add(input);
+                        System.out.println("Withdrawing: " + input[1]);
+                        paxosQueueObj.transactionQueue.add(input);
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command.");
@@ -175,6 +186,7 @@ public class ClientServer implements Runnable {
 
     public void run() {
         try {
+            // Handler thread
             System.out.println("Spawning new handler thread...");
             String clientSentence;
             String capitalizedSentence;
@@ -190,8 +202,8 @@ public class ClientServer implements Runnable {
 
                 paxosObject.handleMsg(clientSentence);
             } else {
-                System.out.println("Thump");
-                System.out.println(listenerTrue);
+//                System.out.println("Thump");
+//                System.out.println(listenerTrue);
             }
         } catch (IOException e) {
             System.out.println(e);
