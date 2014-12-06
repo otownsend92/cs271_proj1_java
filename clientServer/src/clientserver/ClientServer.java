@@ -145,7 +145,8 @@ public class ClientServer implements Runnable {
                     input[1] = (input[1].substring(1, input[1].length() - 1));
                     System.out.println("Depositing: " + input[1]);
                     // Adding to queue
-                    paxosQueueObj.transactionQueue.add(input);
+//                    paxosQueueObj.transactionQueue.add(input);
+                    paxosObject.prepareMsg(input);
                 } catch (Exception e) {
                     System.out.println("Try deposit: " + e);
                 }
@@ -159,7 +160,7 @@ public class ClientServer implements Runnable {
                     } else {
                         // Adding to queue
                         System.out.println("Withdrawing: " + input[1]);
-                        paxosQueueObj.transactionQueue.add(input);
+//                        paxosQueueObj.transactionQueue.add(input);
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command.");
