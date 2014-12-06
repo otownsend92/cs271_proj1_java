@@ -164,16 +164,16 @@ public class Paxos {
 
             } else {
                 // Won election   
-                System.out.println("Won election!");
+                System.out.println("Got a vote!");
                 ackCount++;
                 if (((double) ackCount) / (HeartBeat.numProc) > 0.5) {
                     // Consensus
                     String winMsg = "accept "
                             + receivedBalNum + " "
                             + receivedBalNumServerId + " "
-                            + myVal.type + " "
-                            + myVal.amount + " "
-                            + myVal.logPosition;
+                            + val.type + " "
+                            + val.amount + " "
+                            + val.logPosition;
                     try {
                         // I won
                         ClientServer.sendToAll(winMsg);

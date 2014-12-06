@@ -6,8 +6,6 @@ import java.net.Socket;
 import java.io.*;
 import static java.lang.Thread.sleep;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ClientServer implements Runnable {
 
@@ -252,7 +250,7 @@ public class ClientServer implements Runnable {
     }
 
     public static void sendToAll(String prepareMsg) throws Exception {
-        System.out.println("SENDTOALL");
+//        System.out.println("SENDTOALL");
         
         for (int i = 0; i < 5; ++i) {
             if(HeartBeat.lifeTable[i] == 1) {
