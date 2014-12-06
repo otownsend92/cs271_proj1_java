@@ -237,7 +237,6 @@ public class ClientServer implements Runnable {
 
         System.out.println("Sending " + m + " to: " + serverName + " on port: " + p);
 
-        // This is failing. why??
         Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
 //        System.out.println("1");
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -254,14 +253,16 @@ public class ClientServer implements Runnable {
 
     public static void sendToAll(String prepareMsg) throws Exception {
         System.out.println("SENDTOALL");
+        
         for (int i = 0; i < 5; ++i) {
-
-            int p = serverPorts[i];
-            Socket clientSocket = new Socket(serverIPs[i], p);
-            DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            outToServer.writeBytes(prepareMsg);
-            clientSocket.close();
+            if(HeartBeat.lifeTable[i] == 1) {
+                int p = serverPorts[i];
+                Socket clientSocket = new Socket(serverIPs[i], p);
+                DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                outToServer.writeBytes(prepareMsg);
+                clientSocket.close();
+            }
         }
     }
 }
