@@ -23,10 +23,13 @@ public class Paxos {
     Value acceptedVal = new Value();
     // what leader sends out in accept() message
     Value myVal = new Value();
+    // counter for final accepts
+    int numFinalA = 0;
 
     int minBallotNum = 0;
     int minBallotNumServerId = 0; //set this later
     boolean leader = false;
+    boolean phase2 = false;
 
     /*
      LEADER'S PERSPECTIVE
@@ -138,7 +141,7 @@ public class Paxos {
             // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
             if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > ClientServer.serverId))) {
                 // Lost election
-
+                System.out.println("Didn't get a vote");
                 // Set myVal to the node val who won election
                 // This is the value object
                 myVal.type = message[3];
@@ -163,31 +166,39 @@ public class Paxos {
                 }
 
             } else {
-                // Won election   
-                System.out.println("Got a vote!");
-                ackCount++;
-                if (((double) ackCount) / (HeartBeat.numProc) > 0.5) {
-                    // Consensus
-                    String winMsg = "accept "
-                            + receivedBalNum + " "
-                            + receivedBalNumServerId + " "
-                            + val.type + " "
-                            + val.amount + " "
-                            + val.logPosition;
-                    try {
-                        // I won
-                        ClientServer.sendToAll(winMsg);
-                        leader = true; // ???????????? not sure
-                    } catch (Exception ex) {
-                        System.out.println(ex);
-                    }                   
-                    ackCount = 0;
+                if(phase2) {
+                    // already sent out broadcast. do nothing
+                } else {
+                    // Won election   
+                    System.out.println("Got a vote!");
+                    ackCount++;
+                    double majority = (double) ackCount / (HeartBeat.numProc);
+                    System.out.println(majority);
+                    if ( majority > 0.5) {
+                        // Consensus
+                        phase2 = true;
+                        String winMsg = "accept "
+                                + receivedBalNum + " "
+                                + receivedBalNumServerId + " "
+                                + val.type + " "
+                                + val.amount + " "
+                                + val.logPosition;
+                        try {
+                            // I won
+                            System.out.println("We have a consensus, broadcasting out the accept");
+                            ClientServer.sendToAll(winMsg);
+                            leader = true; // ???????????? not sure
+                        } catch (Exception ex) {
+                            System.out.println(ex);
+                        }                   
+                        ackCount = 0;
+                    }
                 }
             }
 
         } else {
             // Not leader - do nothing
-            
+            System.out.println("I'm a cohort");
         }
     }
 
@@ -225,18 +236,24 @@ public class Paxos {
     }
     
     public void handleFinalAccept(String[] message) {
-        // We're done if we get this step, save the final value
-        
-        acceptedVal.type = message[3];
-        acceptedVal.amount = Double.parseDouble(message[4]);
-        acceptedVal.logPosition = Integer.parseInt(message[5]);
-        
-        Log.addToTransactionLog(acceptedVal);
-        leader = false;
-        
-        if(acceptedVal == val) {
-            PaxosQueue.isProposing = false;
-            PaxosQueue.transactionQueue.remove(0);
+        // We're done if we get this step (if we get final accepts from ALL servers), save the final value
+        numFinalA++;
+        if(numFinalA == HeartBeat.numProc) {
+            acceptedVal.type = message[3];
+            acceptedVal.amount = Double.parseDouble(message[4]);
+            acceptedVal.logPosition = Integer.parseInt(message[5]);
+
+            Log.addToTransactionLog(acceptedVal);
+            leader = false;
+
+            if(acceptedVal == val) {
+                PaxosQueue.isProposing = false;
+                PaxosQueue.transactionQueue.remove(0);
+            }
+            // reset for next iteration
+            numFinalA = 0;
+            phase2 = false;
+            System.out.println("Decided on: " + val.amount);
         }
     }
 }
