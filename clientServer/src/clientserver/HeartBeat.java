@@ -19,8 +19,7 @@ public class HeartBeat {
             String serverIP = ClientServer.serverIPs[i];
             
             Socket socket = new Socket();
-            try {
-                String heartBeatMsg = "ping"; //maybe need to tack on server_id                                
+            try {                               
                 socket.connect(new InetSocketAddress(serverIP, serverPort), 1000); //timeout 1000ms
                 lifeTable[i] = 1;
                 socket.close();
@@ -31,11 +30,5 @@ public class HeartBeat {
             }            
         }
         numProc = alive;
-    }
-    
-    // only run when a message has been received
-    public static void handlePing(String[] message) {
-        int index = Integer.parseInt(message[1]); // array position 1 should be server_id
-        lifeTable[index] = 1; // mark this as alive because we received a msg back
     }
 }
