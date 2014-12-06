@@ -1,12 +1,15 @@
 package clientserver;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Paxos {
 
     public class Value {
         double amount = 0.0;
-        String type;
+        String type = "blank";
         int logPosition = -1;
     }
     
@@ -15,11 +18,11 @@ public class Paxos {
     // generateNum is incremeneted by 1 each round - used f]to generate proposal numbers in conjunction with serverID
     int generateNum = 0;
     // value object that is created at  beginning of proposal 
-    Value val;
+    Value val = new Value();
     // set when a cohort accepts a proposed value
-    Value acceptedVal;
+    Value acceptedVal = new Value();
     // what leader sends out in accept() message
-    Value myVal;
+    Value myVal = new Value();
 
     int minBallotNum = 0;
     int minBallotNumServerId = 0; //set this later
@@ -30,18 +33,25 @@ public class Paxos {
      Receives 'msg' from ClientServer and uses it to generate a Value object val
      to be proposed to all other servers.
      */
-    public void prepareMsg(String [] message) throws Exception {
+    public void prepareMsg(String [] message) {
+        
+        generateNum++;
         //String[] message = msg.split(" ");
         val.type = message[0];
         val.amount = Double.parseDouble(message[1]);
         
+        System.out.println("PREPAREMSG logsize: " + Log.transactionLog.size());
         // Need to get postion from log
         val.logPosition = Log.transactionLog.size();
                 
-        String prepareMsg = "prepare " + generateNum + " server_id"; //change server_id
-        ClientServer.sendToAll(prepareMsg);
+        String prepareMsg = "prepare " + generateNum + " " + ClientServer.serverId; 
+        try {
+            System.out.println("SENDTOALL BEFORE START: " + prepareMsg);
+            ClientServer.sendToAll(prepareMsg);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         leader = true; //??
-        generateNum++;
     }
 
     /*
@@ -50,7 +60,7 @@ public class Paxos {
      and use the same Value object val in a new round of prepares.
      */
     public void regeneratePrepare() throws Exception {
-        String prepareMsg = "prepare " + generateNum + " server_id"; //change server_id
+        String prepareMsg = "prepare " + generateNum + " " + ClientServer.serverId; 
         ClientServer.sendToAll(prepareMsg);
 
         generateNum++;
@@ -104,7 +114,7 @@ public class Paxos {
                 + acceptedVal.amount + " "
                 + acceptedVal.logPosition;
         try {
-            ClientServer.sendTo(reply, "blah port"); //fix  
+            ClientServer.sendTo(reply, Integer.toString(ballotNumServerId));  
         } catch (Exception ex) {
             System.out.println(ex);
         }
@@ -153,7 +163,8 @@ public class Paxos {
                 }
 
             } else {
-                // Won election                                              
+                // Won election   
+                System.out.println("Won election!");
                 ackCount++;
                 if (((double) ackCount) / (HeartBeat.numProc) > 0.5) {
                     // Consensus

@@ -12,7 +12,7 @@ import java.util.Vector;
 
 public class Log {
 
-    public static Vector<Paxos.Value> transactionLog;
+    public static Vector<Paxos.Value> transactionLog = new Vector();
     public static double balance;
     String path = "./";
     boolean append_to_file = true;

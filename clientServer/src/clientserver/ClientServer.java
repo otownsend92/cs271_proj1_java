@@ -145,9 +145,11 @@ public class ClientServer implements Runnable {
                     input[1] = (input[1].substring(1, input[1].length() - 1));
                     System.out.println("Depositing: " + input[1]);
                     // Adding to queue
-                    paxosQueueObj.transactionQueue.add(input);
+//                    paxosQueueObj.transactionQueue.add(input);
+                    paxosObject.prepareMsg(input);
                 } catch (Exception e) {
                     System.out.println("Try deposit: " + e);
+                    e.printStackTrace();
                 }
             } else if (input[0].equals("withdraw")) {
                 double amount;
@@ -159,7 +161,7 @@ public class ClientServer implements Runnable {
                     } else {
                         // Adding to queue
                         System.out.println("Withdrawing: " + input[1]);
-                        paxosQueueObj.transactionQueue.add(input);
+//                        paxosQueueObj.transactionQueue.add(input);
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command.");
@@ -236,13 +238,13 @@ public class ClientServer implements Runnable {
         System.out.println("Sending " + m + " to: " + serverName + " on port: " + p);
 
         Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
-        System.out.println("1");
+//        System.out.println("1");
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-        System.out.println("2");
+//        System.out.println("2");
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        System.out.println("3");
+//        System.out.println("3");
         outToServer.writeBytes(m);
-        System.out.println("4");
+//        System.out.println("4");
         //modifiedSentence = inFromServer.readLine();
         //System.out.println("FROM SERVER: " + modifiedSentence);
         clientSocket.close();
@@ -250,7 +252,7 @@ public class ClientServer implements Runnable {
     }
 
     public static void sendToAll(String prepareMsg) throws Exception {
-
+        System.out.println("SENDTOALL");
         for (int i = 0; i < 5; ++i) {
 
             int p = serverPorts[i];
