@@ -14,7 +14,19 @@ public class ClientServer implements Runnable {
     
     public static int serverId;
     public static double balance = 0.0;
-    public static String[] serverIPs = {"54.174.167.183", "54.174.226.59", "54.86.223.159", "54.174.201.123", "54.174.164.18"};
+    public static String[] serverIpPrivate = {
+        "54.174.167.183", 
+        "54.174.226.59", 
+        "54.86.223.159", 
+        "54.174.201.123", 
+        "54.174.164.18"};
+    public static String[] serverIPs = {
+        "ec2-54-174-167-183.compute-1.amazonaws.com",
+        "ec2-54-174-226-59.compute-1.amazonaws.com",
+        "ec2-54-86-223-159.compute-1.amazonaws.com",
+        "ec2-54-174-201-123.compute-1.amazonaws.com",
+        "ec2-54-174-164-18.compute-1.amazonaws.com"
+    };
     public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
     
     static boolean listenerTrue = true;
@@ -56,11 +68,12 @@ public class ClientServer implements Runnable {
                     try {
                         connectionSocket.setSoTimeout(100);
                         connectionSocket = welcomeSocket.accept();
+                        System.out.println("Connected.");
+                        new Thread(new ClientServer(connectionSocket)).start();
                     } catch (IOException ex) {
                         System.out.println(ex);
                     }
-                    System.out.println("Connected.");
-                    new Thread(new ClientServer(connectionSocket)).start();
+                    
                 }
             }  
         };
@@ -146,7 +159,8 @@ public class ClientServer implements Runnable {
             // added simply for testing 
             else if(input[0].equals("send")) {
                 // send message input[1] to server at port input[2]
-                sendTo(input[1], input[2]);
+                String server = input[2].substring(1, input[2].length()-1);
+                sendTo(input[1], server);
             }
 
             else if(input[0].equals("quit")) {
@@ -199,15 +213,24 @@ public class ClientServer implements Runnable {
     // switch up ports and stuffs
     public static void sendTo(String m, String serverId) throws Exception {
         
-        int p = serverPorts[Integer.parseInt(serverId)];
-        String serverName = serverIPs[Integer.parseInt(serverId)];
+        int server_id = Integer.parseInt(serverId);
+        int p = serverPorts[server_id];
+        String serverName = serverIPs[server_id];
+        
+        System.out.println("Sending " + m + " to: " + serverName + " on port: " + p);
+        
         Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
+        System.out.println("1");
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+        System.out.println("2");
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        System.out.println("3");
         outToServer.writeBytes(m);
+        System.out.println("4");
         //modifiedSentence = inFromServer.readLine();
         //System.out.println("FROM SERVER: " + modifiedSentence);
         clientSocket.close();
+        System.out.println("Finished sending.");
     }
     
     public static void sendToAll(String prepareMsg) throws Exception {
