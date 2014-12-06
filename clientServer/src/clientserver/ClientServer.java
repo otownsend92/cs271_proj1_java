@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.*;
+import static java.lang.Thread.sleep;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ClientServer implements Runnable {
 
@@ -101,11 +100,28 @@ public class ClientServer implements Runnable {
                 }
             }
         };
+        
+        // Queue thread stuff
+        Thread queueWatchdogThread = new Thread() {
+            public void run() {
+                while (true) {
+                    try {
+                        System.out.println("Queue thread entered");
+                        
+                    } catch (IOException | InterruptedException ex) {
+                        System.out.println(ex);
+                    }
+
+                }
+            }
+        };
 
         // Start the listener thread
         listenerThread.start();
         // Start the heartbeat thread
         heartBeatThread.start();
+        // Start the queue thread
+        queueWatchdogThread.start();
 
         // Start main thread for input
         while (true) {

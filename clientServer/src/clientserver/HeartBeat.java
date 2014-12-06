@@ -27,7 +27,7 @@ public class HeartBeat {
                 alive++;                
             } catch (Exception ex) {
                 // handle the timeout
-                System.out.println(ex);
+                // System.out.println(ex);
                 lifeTable[i] = 0;
             }            
         }
