@@ -30,8 +30,8 @@ public class Paxos {
      Receives 'msg' from ClientServer and uses it to generate a Value object val
      to be proposed to all other servers.
      */
-    public void prepareMsg(String msg) throws Exception {
-        String[] message = msg.split(" ");
+    public void prepareMsg(String [] message) throws Exception {
+        //String[] message = msg.split(" ");
         val.type = message[0];
         val.amount = Double.parseDouble(message[1]);
         

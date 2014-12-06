@@ -6,6 +6,8 @@
 package clientserver;
 
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -13,32 +15,50 @@ import java.util.Vector;
  */
 public class PaxosQueue {
     
-    private Vector<Paxos.Value> transactionQueue;
+    public static Vector<String[]> transactionQueue;
+    public boolean isProposing = false;
 	
 	public PaxosQueue() {
-		transactionQueue = new Vector<Paxos.Value>();
+		transactionQueue = new Vector<String[]>();
 	}
 	
 	public boolean isEmpty() {
 		return transactionQueue.isEmpty();
 	}
 	
-	public void enqueue(Paxos.Value cmd) {
+	public void enqueue(String[] cmd) {
 		transactionQueue.add(cmd);
 	}
 	
-	public Paxos.Value dequeue() {
-		Paxos.Value val = transactionQueue.get(0);
+	public String[] dequeue() {
+		String[] val = transactionQueue.get(0);
 		transactionQueue.remove(0);
 		return val;
 	}
 	
-	public Paxos.Value peek() {
+	public String[] peek() {
 		return transactionQueue.get(0);
 	}
 	
 	public void clear() {
 		transactionQueue.removeAllElements();
 	}
+        
+        public void queueWatcher() {
+            
+            while(true) {
+                
+                // if there are items in the queue and if Paxos isn't currently proposing a value, then propose value
+                if(!transactionQueue.isEmpty() && !isProposing){
+                    String[] newTrans = transactionQueue.get(0);
+                    try {
+                        ClientServer.paxosObject.prepareMsg(newTrans);
+                        isProposing = true;
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                    }
+                }
+            }
+        }
     
 }

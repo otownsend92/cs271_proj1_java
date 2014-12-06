@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 public class ClientServer implements Runnable {
 
     // make new paxos object
-    Paxos paxosObject = new Paxos();
+    public static Paxos paxosObject = new Paxos();
 
     public static int serverId;
     public static double balance = 0.0;
@@ -136,7 +136,8 @@ public class ClientServer implements Runnable {
                     if (Log.balance < amount) {
                         System.out.println("Withdraw of: " + amount + " failed. Insufficient funds.");
                     } else {
-                        // do stuff
+                        // add to queue
+                        
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command.");
