@@ -46,7 +46,7 @@ int main(void) {
         cout.write(cmd.c_str(), strlen(cmd.c_str()));
         cout.put('\n');
         string result = exec(cmd.c_str());
-        sleep(1);
+        // sleep(1);
     }
 
     exit(EXIT_SUCCESS);

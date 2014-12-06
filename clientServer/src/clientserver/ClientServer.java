@@ -63,17 +63,20 @@ public class ClientServer implements Runnable {
                 }
                 
                 System.out.println("Waiting for clients...");
-                while (listenerTrue) {
-                    Socket connectionSocket = new Socket();                   
-                    try {
-                        connectionSocket.setSoTimeout(100);
-                        connectionSocket = welcomeSocket.accept();
-                        System.out.println("Connected.");
-                        new Thread(new ClientServer(connectionSocket)).start();
-                    } catch (IOException ex) {
-                        System.out.println(ex);
+                while (true) {
+                    if(!listenerTrue) {
+                        // don't listen
+                    } else {
+                        Socket connectionSocket = new Socket();                   
+                        try {
+                            connectionSocket.setSoTimeout(100);
+                            connectionSocket = welcomeSocket.accept();
+                            System.out.println("Connected.");
+                            new Thread(new ClientServer(connectionSocket)).start();
+                        } catch (IOException ex) {
+                            System.out.println(ex);
+                        }
                     }
-                    
                 }
             }  
         };
@@ -100,7 +103,7 @@ public class ClientServer implements Runnable {
         // Start the listener thread
         listenerThread.start();                        
         // Start the heartbeat thread
-        // heartBeatThread.start();
+        heartBeatThread.start();
         
         // Start main thread for input
         while(true) {
@@ -179,12 +182,17 @@ public class ClientServer implements Runnable {
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(csocket.getInputStream()));
             DataOutputStream outToClient = new DataOutputStream(csocket.getOutputStream());
             clientSentence = inFromClient.readLine();
-            System.out.println("Received: " + clientSentence);
             
             // Going to need to handle the received messages in here
             // This includes heartbeat 'pings'
-            
-            paxosObject.handleMsg(clientSentence);            
+            if((clientSentence != null) && (!clientSentence.isEmpty())) {
+                System.out.println("Received: " + clientSentence);
+
+                paxosObject.handleMsg(clientSentence); 
+            } else {
+                System.out.println("Thump");
+                System.out.println(listenerTrue);
+            }
         }
         
         catch (IOException e) {

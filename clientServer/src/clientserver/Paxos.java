@@ -62,8 +62,8 @@ public class Paxos {
      Will call various other handler methods based on message.
      */
     public void handleMsg(String msg) {
-
-        String[] message = msg.split(" ");
+        
+        String []message = msg.split(" ");
 
         if (message[0].equals("prepare")) {
             handlePrepare(message);
@@ -73,9 +73,7 @@ public class Paxos {
             handleAccept(message);
         } else if (message[0].equals("finalaccept")) {
             handleAccept(message);
-        } else if (message[0].equals("")) {
-            // this is a heartbeat
-        }
+        } 
     }
 
     /*

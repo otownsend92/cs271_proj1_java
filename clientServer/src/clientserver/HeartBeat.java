@@ -6,6 +6,7 @@ package clientserver;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class HeartBeat {
     
@@ -26,9 +27,11 @@ public class HeartBeat {
                 alive++;                
             } catch (Exception ex) {
                 // handle the timeout
+                System.out.println(ex);
                 lifeTable[i] = 0;
             }            
         }
         numProc = alive;
+        System.out.println(Arrays.toString(HeartBeat.lifeTable));
     }
 }
