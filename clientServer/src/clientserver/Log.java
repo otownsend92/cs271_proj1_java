@@ -59,4 +59,13 @@ public class Log {
     public static double getBalance() {
         return balance;
     }
+    
+    public static void printLog() {
+        
+        for (int i = 0; i<transactionLog.size(); ++i) {
+            Paxos.Value val = transactionLog.get(i);
+            System.out.println("Log " + i + ": " + val.type + " " + val.amount);
+            
+        }
+    }
 }
