@@ -30,9 +30,7 @@ public class PaxosQueue {
             String[] newTrans = transactionQueue.get(0);
             System.out.println(Arrays.toString(newTrans));
             try {
-                System.out.println("TEST");
                 ClientServer.paxosObject.prepareMsg(newTrans);
-                
                 isProposing = true;                
             } catch (Exception ex) {
                 System.out.println("queueWatcher:" + ex);

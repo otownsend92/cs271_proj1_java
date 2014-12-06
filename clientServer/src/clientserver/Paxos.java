@@ -33,18 +33,16 @@ public class Paxos {
     public void prepareMsg(String [] message) throws Exception {
         //String[] message = msg.split(" ");
         val.type = message[0];
-        System.out.println("MSG " + val.type);
         val.amount = Double.parseDouble(message[1]);
-        System.out.println("AMT " + val.amount);
+        
         // Need to get postion from log
         val.logPosition = Log.transactionLog.size();
                 
         String prepareMsg = "prepare " + generateNum + " server_id"; //change server_id
-        System.out.println("SENDTOALL " + prepareMsg);
         ClientServer.sendToAll(prepareMsg);
         leader = true; //??
         generateNum++;
-    } 
+    }
 
     /*
      LEADER'S PERSPECTIVE
