@@ -5,6 +5,7 @@
  */
 package clientserver;
 
+import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,7 +17,7 @@ import java.util.logging.Logger;
 public class PaxosQueue {
     
     public static Vector<String[]> transactionQueue;
-    public boolean isProposing = false;
+    public static boolean isProposing = false;
 	
 	public PaxosQueue() {
 		transactionQueue = new Vector<String[]>();
@@ -30,10 +31,8 @@ public class PaxosQueue {
 		transactionQueue.add(cmd);
 	}
 	
-	public String[] dequeue() {
-		String[] val = transactionQueue.get(0);
+	public void dequeue() {
 		transactionQueue.remove(0);
-		return val;
 	}
 	
 	public String[] peek() {
@@ -44,16 +43,18 @@ public class PaxosQueue {
 		transactionQueue.removeAllElements();
 	}
         
-        public void queueWatcher() {
+        public static void queueWatcher() {
             
             while(true) {
                 
                 // if there are items in the queue and if Paxos isn't currently proposing a value, then propose value
                 if(!transactionQueue.isEmpty() && !isProposing){
                     String[] newTrans = transactionQueue.get(0);
+                    System.out.println(Arrays.toString(newTrans));
                     try {
                         ClientServer.paxosObject.prepareMsg(newTrans);
                         isProposing = true;
+                        System.out.print(isProposing);
                     } catch (Exception ex) {
                         System.out.println(ex);
                     }

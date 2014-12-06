@@ -222,5 +222,10 @@ public class Paxos {
         
         Log.addToTransactionLog(acceptedVal);
         leader = false;
+        
+        if(acceptedVal == val) {
+            PaxosQueue.isProposing = false;
+            PaxosQueue.transactionQueue.remove(0);
+        }
     }
 }

@@ -104,15 +104,8 @@ public class ClientServer implements Runnable {
         // Queue thread stuff
         Thread queueWatchdogThread = new Thread() {
             public void run() {
-                while (true) {
-                    try {
-                        System.out.println("Queue thread entered");
-                        
-                    } catch (IOException | InterruptedException ex) {
-                        System.out.println(ex);
-                    }
-
-                }
+                System.out.println("Starting queuewatcher thread");
+                PaxosQueue.queueWatcher();
             }
         };
 
@@ -140,20 +133,22 @@ public class ClientServer implements Runnable {
                 try {
                     amount = Double.parseDouble(input[1].substring(1, input[1].length() - 1));
                     System.out.println("Depositing: " + amount);
-                    balance += amount;
+                    // Adding to queue
+                    PaxosQueue.transactionQueue.add(input);
                 } catch (Exception e) {
                     System.out.println("Invalid command.");
                 }
             } else if (input[0].equals("withdraw")) {
                 double amount;
                 try {
-                    amount = Double.parseDouble(input[1].substring(1, input[1].length() - 1));
-                    System.out.println("Withdrawing: " + amount);
+                    amount = Double.parseDouble(input[1].substring(1, input[1].length() - 1));                   
                     if (Log.balance < amount) {
+                        // Nonsufficient funds
                         System.out.println("Withdraw of: " + amount + " failed. Insufficient funds.");
                     } else {
-                        // add to queue
-                        
+                        // Adding to queue
+                        System.out.println("Withdrawing: " + amount);
+                        PaxosQueue.transactionQueue.add(input);
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command.");
