@@ -237,6 +237,7 @@ public class ClientServer implements Runnable {
 
         System.out.println("Sending " + m + " to: " + serverName + " on port: " + p);
 
+        // This is failing. why??
         Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
 //        System.out.println("1");
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());

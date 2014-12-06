@@ -40,13 +40,13 @@ public class Paxos {
         val.type = message[0];
         val.amount = Double.parseDouble(message[1]);
         
-        System.out.println("PREPAREMSG logsize: " + Log.transactionLog.size());
+//        System.out.println("PREPAREMSG logsize: " + Log.transactionLog.size());
         // Need to get postion from log
         val.logPosition = Log.transactionLog.size();
                 
         String prepareMsg = "prepare " + generateNum + " " + ClientServer.serverId; 
         try {
-            System.out.println("SENDTOALL BEFORE START: " + prepareMsg);
+//            System.out.println("SENDTOALL BEFORE START: " + prepareMsg);
             ClientServer.sendToAll(prepareMsg);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -82,7 +82,7 @@ public class Paxos {
         } else if (message[0].equals("accept")) {
             handleAccept(message);
         } else if (message[0].equals("finalaccept")) {
-            handleAccept(message);
+            handleFinalAccept(message);
         } 
     }
 
