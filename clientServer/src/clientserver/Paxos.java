@@ -214,7 +214,7 @@ public class Paxos {
         int receivedBalNumServerId = Integer.parseInt(message[2]);
         
         // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
-        if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > ClientServer.serverId))) {
+        if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId >= ClientServer.serverId))) {
             acceptedVal.type = message[3];
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
@@ -253,7 +253,7 @@ public class Paxos {
             // reset for next iteration
             numFinalA = 0;
             phase2 = false;
-            System.out.println("Decided on: " + val.amount);
+            System.out.println("Decided on: " + acceptedVal.amount);
         }
     }
 }
