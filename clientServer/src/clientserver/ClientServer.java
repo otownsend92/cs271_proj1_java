@@ -174,7 +174,12 @@ public class ClientServer implements Runnable {
             } else if (input[0].equals("unfail")) {
                 System.out.println("Unfailing...");
                 unfail();
-            } // added simply for testing 
+            } 
+            else if (input[0].equals("print")) {
+                Log.printLog();
+            }
+
+            // added simply for testing 
             else if (input[0].equals("send")) {
                 // send message input[1] to server at port input[2]
                 String server = input[2].substring(1, input[2].length() - 1);
