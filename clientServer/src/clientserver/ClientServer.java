@@ -19,8 +19,8 @@ public class ClientServer implements Runnable {
     public static double balance = 0.0;
     public static String[] serverIPs = {
         "54.174.167.183", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.167.183  
-        "54.174.226.59",  // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.226.59 
-        "54.86.223.159",  //
+        "54.174.226.59", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.226.59 
+        "54.86.223.159", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.86.223.159 
         "54.174.201.123", //
         "54.174.164.18"}; //
 //    public static String[] serverIpPrivate = {
@@ -56,7 +56,7 @@ public class ClientServer implements Runnable {
 
         // Listener thread stuff
         listenerThread = new Thread() {
-            public void run() {               
+            public void run() {
                 System.out.println("Waiting for clients...");
                 try {
                     // init welcomeSocket ONLY once
@@ -74,14 +74,14 @@ public class ClientServer implements Runnable {
                         }
 
                     } else {
-                        try {                            
+                        try {
                             Socket connectionSocket = new Socket();
                             connectionSocket.setSoTimeout(100);
                             connectionSocket = welcomeSocket.accept();
-                            System.out.println("Connected.");
-                            
+//                            System.out.println("Connected.");
+
                             new Thread(new ClientServer(connectionSocket)).start();
-                            
+
 //                            welcomeSocket.close(); //???
                         } catch (IOException ex) {
                             System.out.println("Server socket: " + ex);
@@ -109,11 +109,11 @@ public class ClientServer implements Runnable {
                 }
             }
         };
-        
+
         // Queue thread stuff
         Thread queueWatchdogThread = new Thread() {
             public void run() {
-                while(true) {
+                while (true) {
 //                    System.out.println("Starting queuewatcher thread");
                     paxosQueueObj.queueWatcher();
                 }
@@ -152,7 +152,7 @@ public class ClientServer implements Runnable {
             } else if (input[0].equals("withdraw")) {
                 double amount;
                 try {
-                    input[1] = (input[1].substring(1, input[1].length() - 1));                   
+                    input[1] = (input[1].substring(1, input[1].length() - 1));
                     if (Log.balance < Double.parseDouble(input[1])) {
                         // Nonsufficient funds
                         System.out.println("Withdraw of: " + input[1] + " failed. Insufficient funds.");
@@ -187,9 +187,8 @@ public class ClientServer implements Runnable {
     public void run() {
         try {
             // Handler thread
-            System.out.println("Spawning new handler thread...");
+//            System.out.println("Spawning new handler thread...");
             String clientSentence;
-            String capitalizedSentence;
 
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(csocket.getInputStream()));
             DataOutputStream outToClient = new DataOutputStream(csocket.getOutputStream());
