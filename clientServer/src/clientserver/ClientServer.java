@@ -100,7 +100,7 @@ public class ClientServer implements Runnable {
         // Start the listener thread
         listenerThread.start();                        
         // Start the heartbeat thread
-        heartBeatThread.start();
+        // heartBeatThread.start();
         
         // Start main thread for input
         while(true) {
