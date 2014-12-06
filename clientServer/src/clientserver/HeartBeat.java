@@ -1,5 +1,8 @@
 package clientserver;
 
+// TO COPY: scp -r -i ~/Desktop/turtlebeards.pem ~/Dropbox/Current\ Documents/cs271/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@54.174.167.183:/home/ec2-user/
+// TO LOGIN: ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.167.183         
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;

@@ -1,6 +1,5 @@
 package clientserver;
 
-// string cmd = "scp -r -i ~/.ssh/id_rsa ucsb_276c@"+address[i]+":/home/ucsb_276c/p2 ~/Dropbox/Current\\ Documents/cs276/
 
 import java.io.IOException;
 import java.net.ServerSocket;
