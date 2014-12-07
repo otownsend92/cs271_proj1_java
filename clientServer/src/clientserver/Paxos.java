@@ -96,7 +96,7 @@ public class Paxos {
             handleAccept(message);
         } else if (message[0].equals("finalaccept")) {
             handleFinalAccept(message);
-        }
+        } 
     }
 
     /*
