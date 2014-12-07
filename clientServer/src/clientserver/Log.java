@@ -95,14 +95,10 @@ public class Log {
 
         connectionSocket.close();
     }
+    
+    public static void rebuildFromSelf() {
+
+    }
 
 }
 
-//
-//
-//        Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
-//        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-//        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-//        outToServer.writeBytes(m);
-//        clientSocket.close();
-//        System.out.println("Finished sending.");

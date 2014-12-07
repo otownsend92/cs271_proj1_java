@@ -351,13 +351,13 @@ public class ClientServer implements Runnable {
 
     public static void requestLog() throws Exception {
 
-        int chosenServer = 0;
+        int chosenServer = serverId;
         for (int i = 0; i < logSizes.length; i++) {
-            if (logSizes[i] > Log.transactionLog.size()) {
+            if (logSizes[i] > logSizes[serverId] ) { //Log.transactionLog.size()) {
                 chosenServer = i;
             }
         }
-        if (chosenServer != 0) {
+        if (chosenServer != serverId) {
             // request log from other server
             String requestLog = "requestlog " + serverId;
             sendTo(requestLog, Integer.toString(chosenServer));

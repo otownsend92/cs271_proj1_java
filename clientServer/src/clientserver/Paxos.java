@@ -298,6 +298,9 @@ public class Paxos {
         // if local is up to date, import data
         int size = Integer.parseInt(response[1]);
         int server = Integer.parseInt(response[2]);
+        
+        System.out.println("Server: " + server + "size is: " + size);
+        
         ClientServer.logSizes[server] = size;
 
         ClientServer.heardFrom++;
