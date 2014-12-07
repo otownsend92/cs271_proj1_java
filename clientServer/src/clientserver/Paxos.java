@@ -29,13 +29,14 @@ public class Paxos {
     Value myVal = new Value();
     // counter for final accepts
     int numFinalA = 0;
-    public static Vector<Value> ackedValues;
+    public static Vector<Value> ackedValues = new Vector();
     public static int[] ackedValBals;
 
     int minBallotNum = 0;
     int minBallotNumServerId = 0; //TESTING THIS? WHAT DO I SET THIS TO???
     boolean leader = false;
     boolean phase2 = false;
+    boolean var = false;
 
     /*
      LEADER'S PERSPECTIVE
@@ -45,6 +46,7 @@ public class Paxos {
     public void prepareMsg(String[] message) {
 
         generateNum++;
+        leader = true;
         //String[] message = msg.split(" ");
         val.type = message[0];
         val.amount = Double.parseDouble(message[1]);
@@ -60,7 +62,6 @@ public class Paxos {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        leader = true; //??
     }
 
     /*
@@ -87,8 +88,8 @@ public class Paxos {
         if (message[0].equals("prepare")) {
             handlePrepare(message);
         } else if (message[0].equals("ack")) {
-//            handleAck(message);
-            handleAckNew(message);
+            handleAck(message);
+//            handleAckNew(message);
         } else if (message[0].equals("accept")) {
             handleAccept(message);
         } else if (message[0].equals("finalaccept")) {
@@ -133,8 +134,8 @@ public class Paxos {
     }
 
     public void handleAckNew(String[] message) {
-
-        ackCount++;
+        if(phase2) {}
+        else {ackCount++;
 
         Value tempVal = new Value();
         tempVal.balNum = Integer.parseInt(message[1]);
@@ -145,13 +146,14 @@ public class Paxos {
 
         if (!tempVal.type.equals("blank")) {
             ackedValues.add(tempVal);
+            var = true;
         }
 
         double majority = (double) ackCount / (HeartBeat.numProc);
         System.out.println(majority);
         if (majority > 0.5) {
 
-            if (ackedValues.isEmpty()) {
+            if (!var) {
                 if (phase2) {
                     // // already sent out broadcast. do nothing
                 }
@@ -197,9 +199,11 @@ public class Paxos {
                 } catch (Exception ex) {
                     System.out.println(ex);
                 }
+                ackCount = 0;
             }
+            ackedValues.removeAllElements();
         }
-        ackCount = 0;
+        }
     }
 
     public static Value findHighestVal() {
@@ -218,7 +222,7 @@ public class Paxos {
 
             i++;
         }
-        return ackedValues.get(i);
+        return ackedValues.get(highest);
     }
 
     /*
@@ -232,7 +236,7 @@ public class Paxos {
      */
     public void handleAck(String[] message) {
 
-        if (leader) {
+//        if (leader) {
             // I think I'm the leader
             int receivedBalNum = Integer.parseInt(message[1]);
             int receivedBalNumServerId = Integer.parseInt(message[2]);
@@ -295,10 +299,10 @@ public class Paxos {
                 }
             }
 
-        } else {
-            // Not leader - do nothing
-            System.out.println("I'm a cohort");
-        }
+//        } else {
+//            // Not leader - do nothing
+//            System.out.println("I'm a cohort");
+//        }
     }
 
     /*
@@ -313,7 +317,8 @@ public class Paxos {
         int receivedBalNumServerId = Integer.parseInt(message[2]);
 
         // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
-        if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId >= ClientServer.serverId))) {
+        if ((receivedBalNum >= generateNum) || 
+                ((receivedBalNum == generateNum) && (receivedBalNumServerId >= ClientServer.serverId))) {
             acceptedVal.type = message[3];
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
@@ -353,6 +358,8 @@ public class Paxos {
             // reset for next iteration
             numFinalA = 0;
             phase2 = false;
+            minBallotNum = 0;
+            minBallotNumServerId = 0;
             System.out.println("Decided on: " + acceptedVal.amount);
         }
     }

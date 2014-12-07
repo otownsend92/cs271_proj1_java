@@ -7,13 +7,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
 
 public class Log {
 
-    public static Vector<Paxos.Value> transactionLog = new Vector();
+    public static ArrayList<Paxos.Value> transactionLog = new ArrayList();
     public static double balance;
     static String path = "./log.txt";
     static boolean append_to_file = true;

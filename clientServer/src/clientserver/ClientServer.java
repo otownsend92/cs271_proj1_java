@@ -180,9 +180,9 @@ public class ClientServer implements Runnable {
             else if (input[0].equals("write"))
             {
                 for(int i = 0; i < Log.transactionLog.size(); i++) {                    
-                    String a = Log.transactionLog.elementAt(i).type;
-                    String b = Double.toString(Log.transactionLog.elementAt(i).amount);
-                    String c = Integer.toString(Log.transactionLog.elementAt(i).logPosition);
+                    String a = Log.transactionLog.get(i).type;
+                    String b = Double.toString(Log.transactionLog.get(i).amount);
+                    String c = Integer.toString(Log.transactionLog.get(i).logPosition);
                     Log.writeToFile(a + " " + b + " " + c);
                 }
             }
@@ -265,10 +265,12 @@ public class ClientServer implements Runnable {
     }
 
     public static void sendToAll(String prepareMsg) throws Exception {
-//        System.out.println("SENDTOALL");
+        
         
         for (int i = 0; i < 5; ++i) {
             if(HeartBeat.lifeTable[i] == 1) {
+                System.out.println("Heartbeat at: " + i);
+                System.out.println("Sending to" + serverIPs[i] +":"+serverPorts[i]);
                 int p = serverPorts[i];
                 Socket clientSocket = new Socket(serverIPs[i], p);
                 DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
