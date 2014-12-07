@@ -134,6 +134,7 @@ public class ClientServer implements Runnable {
 
                             Log.transactionLog = receivedLog;
                             System.out.println("This is the received catch-up log: " + Log.transactionLog);
+                            Log.rebuildLog();
 
                         } catch (IOException ex) {
                             System.out.println("newSock socket: " + ex);

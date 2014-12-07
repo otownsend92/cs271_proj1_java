@@ -95,10 +95,34 @@ public class Log {
 
         connectionSocket.close();
     }
-    
-    public static void rebuildFromSelf() {
 
+    public static void rebuildLog() throws IOException {
+
+        append_to_file = false;
+        // fix balance
+        balance = 0;
+        String block = "";
+        for (int i = 0; i < transactionLog.size(); i++) {
+            String trans = transactionLog.elementAt(i);
+            String[] split = trans.split(" ");
+            double amt = Double.parseDouble(split[1]);
+            if (split[0].equals("deposit")) {
+                //deposit
+                balance += amt;
+
+            } else {
+                //withdraw
+                balance -= amt;
+            }
+            if (i == transactionLog.size() - 1) {
+                block += trans;
+            } else {
+                block += trans + "\n";
+            }
+        }
+        //write to log at once
+        writeToFile(block);
+        append_to_file = true;
     }
 
 }
-
