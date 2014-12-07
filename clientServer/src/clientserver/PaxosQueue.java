@@ -22,7 +22,15 @@ public class PaxosQueue {
     public PaxosQueue() {
         transactionQueue = new Vector<String[]>();
     }
+    
+    public static void printQ() {
+        for (int i = 0; i < transactionQueue.size(); ++i) {
+            String [] val = transactionQueue.elementAt(i);
+            System.out.println("Queue " + i + ": " + Arrays.toString(val));
 
+        }
+    }
+    
     public static void queueWatcher() {
 
         // if there are items in the queue and if Paxos isn't currently proposing a value, then propose value

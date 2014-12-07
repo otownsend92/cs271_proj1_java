@@ -133,7 +133,7 @@ public class ClientServer implements Runnable {
                             newSock.close();
 
                             Log.transactionLog = receivedLog;
-                            System.out.println(Log.transactionLog);
+                            System.out.println("This is the received catch-up log: " + Log.transactionLog);
 
                         } catch (IOException ex) {
                             System.out.println("newSock socket: " + ex);
@@ -246,6 +246,8 @@ public class ClientServer implements Runnable {
                 logObject.printLog();
             } else if(input[0].equals("heartbeat")) {
                 System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
+            } else if(input[0].equals("printq")) {
+                PaxosQueue.printQ();
             }
             // added simply for testing 
             else if (input[0].equals("send")) {
@@ -352,16 +354,19 @@ public class ClientServer implements Runnable {
     public static void requestLog() throws Exception {
 
         int chosenServer = serverId;
+        System.out.println(Arrays.toString(logSizes));
         for (int i = 0; i < logSizes.length; i++) {
             if (logSizes[i] > logSizes[serverId] ) { //Log.transactionLog.size()) {
                 chosenServer = i;
             }
         }
         if (chosenServer != serverId) {
+            System.out.println("Requesting from: "+ chosenServer);
             // request log from other server
             String requestLog = "requestlog " + serverId;
             sendTo(requestLog, Integer.toString(chosenServer));
         } else {
+            System.out.println("rebuilding from self");
             // else rebuild from yourself
         }
 
