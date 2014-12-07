@@ -244,12 +244,8 @@ public class ClientServer implements Runnable {
                 unfail();
             } else if (input[0].equals("print")) {
                 logObject.printLog();
-            } else if(input[0].equals("update")) {
-                int size = Log.transactionLog.size();
-                System.out.println("local size of log: "+size);
-                // poll others for largest size
-                String pollMsg = "sizepoll " + serverId;
-                sendPollToAll(pollMsg);
+            } else if(input[0].equals("heartbeat")) {
+                System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
             }
             // added simply for testing 
             else if (input[0].equals("send")) {
