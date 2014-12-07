@@ -160,6 +160,7 @@ public class ClientServer implements Runnable {
                         // Adding to queue
                         System.out.println("Withdrawing: " + input[1]);
 //                        paxosQueueObj.transactionQueue.add(input);
+                        paxosObject.prepareMsg(input);
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command.");

@@ -101,6 +101,7 @@ public class Paxos {
         int ballotNumServerId = Integer.parseInt(message[2]);
         if ((ballotNum > minBallotNum) || ((ballotNum == minBallotNum) && (minBallotNumServerId >= ballotNumServerId))) {
             minBallotNum = ballotNum;
+            minBallotNumServerId = ballotNumServerId;
             System.out.println("IFSTATEMENT");
             /*
              TODO:
@@ -150,8 +151,8 @@ public class Paxos {
                 myVal.logPosition = Integer.parseInt(message[5]);
 
                 String concedeMsg = "accept "
-                        + receivedBalNum + " "
-                        + receivedBalNumServerId + " "
+                        + generateNum + " "
+                        + ClientServer.serverId + " "
                         + myVal.type + " "
                         + myVal.amount + " "
                         + myVal.logPosition;
@@ -180,8 +181,8 @@ public class Paxos {
                         // Consensus
                         phase2 = true;
                         String winMsg = "accept "
-                                + receivedBalNum + " "
-                                + receivedBalNumServerId + " "
+                                + generateNum + " "
+                                + ClientServer.serverId + " "
                                 + val.type + " "
                                 + val.amount + " "
                                 + val.logPosition;
