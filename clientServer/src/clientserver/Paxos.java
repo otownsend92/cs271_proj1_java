@@ -89,10 +89,6 @@ public class Paxos {
 
         if (message[0].equals("prepare")) {
             handlePrepare(message);
-        } else if (message[0].equals("ping")) {
-            HeartBeat.handlePing(message);
-        } else if (message[0].equals("pingreply")) {
-            HeartBeat.handlePingReply(message);
         } else if (message[0].equals("ack")) {
             handleAck(message);
 //            handleAckNew(message);

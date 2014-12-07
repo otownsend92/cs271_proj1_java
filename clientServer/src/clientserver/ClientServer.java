@@ -150,7 +150,7 @@ public class ClientServer implements Runnable {
                     // runs forever in a loop, and waits for let's say, 3 sec before running again?
                     try {
 //                        System.out.println("Entering heartbeat thread...");
-                        HeartBeat.pingAllNew(); // this should update the "numProc" int in HeartBeat.java
+                        HeartBeat.pingAll(); // this should update the "numProc" int in HeartBeat.java
 
                         // wait 3s
                         sleep(3000);
@@ -342,20 +342,6 @@ public class ClientServer implements Runnable {
                 outToServer.writeBytes(prepareMsg);
                 clientSocket.close();
             }
-        }
-    }
-    
-    public static void sendPingAll(String prepareMsg) throws Exception {
-
-        for (int i = 0; i < 5; ++i) {
-//                System.out.println("Heartbeat at: " + i);
-//                System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
-                int p = serverPorts[i];
-                Socket clientSocket = new Socket(serverIPs[i], p);
-                DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                outToServer.writeBytes(prepareMsg);
-                clientSocket.close();
         }
     }
     
