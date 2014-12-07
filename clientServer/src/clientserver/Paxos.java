@@ -89,6 +89,10 @@ public class Paxos {
 
         if (message[0].equals("prepare")) {
             handlePrepare(message);
+        } else if (message[0].equals("ping")) {
+            HeartBeat.handlePing(message);
+        } else if (message[0].equals("pingreply")) {
+            HeartBeat.handlePingReply(message);
         } else if (message[0].equals("ack")) {
             handleAck(message);
 //            handleAckNew(message);
@@ -102,7 +106,7 @@ public class Paxos {
             Log.sendLog(message[1]);
         } else if (message[0].equals("mysize")) {
             handleSizeResponse(message);
-        }
+        } 
 
     }
 
@@ -193,7 +197,7 @@ public class Paxos {
                 System.out.println("Got a vote!");
                 ackCount++;
                 double majority = (double) ackCount / (HeartBeat.numProc);
-                System.out.println(majority);
+//                System.out.println(majority);
                 if ((majority > 0.5) && (HeartBeat.numProc >= 3)) {
                     // Consensus
                     phase2 = true;

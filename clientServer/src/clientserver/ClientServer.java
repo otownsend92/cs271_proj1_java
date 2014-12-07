@@ -17,6 +17,7 @@ public class ClientServer implements Runnable {
     public static PaxosQueue paxosQueueObj = new PaxosQueue();
     public static Log logObject = new Log();
 
+    public static int isFail = 0;
     public static int serverId;
     public static int heardFrom = 0;
     public static double balance = 0.0;
@@ -25,7 +26,7 @@ public class ClientServer implements Runnable {
         "54.174.226.59", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.226.59 
         "54.86.223.159", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.86.223.159 
         "54.174.201.123", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.201.123 
-        "54.174.164.18"}; //
+        "54.174.164.18"}; //ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.164.18 
 //    public static String[] serverIpPrivate = {
 //        "ec2-54-174-167-183.compute-1.amazonaws.com",
 //        "ec2-54-174-226-59.compute-1.amazonaws.com",
@@ -71,12 +72,12 @@ public class ClientServer implements Runnable {
                 }
                 while (true) {
                     if (!listenerTrue) {
-                        try {
-                            // don't listen
-                            welcomeSocket.close();
-                        } catch (IOException ex) {
-                            System.out.println(ex);
-                        }
+//                        try {
+//                            // don't listen
+//                            welcomeSocket.close();
+//                        } catch (IOException ex) {
+//                            System.out.println(ex);
+//                        }
 
                     } else {
                         try {
@@ -149,12 +150,15 @@ public class ClientServer implements Runnable {
                     // runs forever in a loop, and waits for let's say, 3 sec before running again?
                     try {
 //                        System.out.println("Entering heartbeat thread...");
-                        HeartBeat.pingAll(); // this should update the "numProc" int in HeartBeat.java
+                        HeartBeat.pingAllNew(); // this should update the "numProc" int in HeartBeat.java
 
                         // wait 3s
                         sleep(3000);
+                        HeartBeat.countAliveServers();
                     } catch (IOException | InterruptedException ex) {
 //                        System.out.println(ex);
+                    } catch (Exception ex) {
+                        Logger.getLogger(ClientServer.class.getName()).log(Level.SEVERE, null, ex);
                     }
 
                 }
@@ -190,7 +194,7 @@ public class ClientServer implements Runnable {
             }
             String regex = "(?=\\()|(?<=\\)\\d)";
             String[] input = inputLine.split(regex);
-            System.out.println(Arrays.toString(input));
+//            System.out.println(Arrays.toString(input));
 
             if (input[0].equals("deposit")) {
                 double amount;
@@ -201,7 +205,7 @@ public class ClientServer implements Runnable {
                     paxosQueueObj.transactionQueue.add(input);
                     for (int i = 0; i < paxosQueueObj.transactionQueue.size(); i++) {
                         String[] s = paxosQueueObj.transactionQueue.elementAt(i);
-                        System.out.println(Arrays.toString(s));
+//                        System.out.println(Arrays.toString(s));
                     }
 //                    paxosObject.prepareMsg(input);
                 } catch (Exception e) {
@@ -221,7 +225,7 @@ public class ClientServer implements Runnable {
                         paxosQueueObj.transactionQueue.add(input);
                         for (int i = 0; i < paxosQueueObj.transactionQueue.size(); i++) {
                             String[] s = paxosQueueObj.transactionQueue.elementAt(i);
-                            System.out.println(Arrays.toString(s));
+//                            System.out.println(Arrays.toString(s));
                         }
 //                        paxosObject.prepareMsg(input);
                     }
@@ -270,8 +274,10 @@ public class ClientServer implements Runnable {
             // Going to need to handle the received messages in here
             // This includes heartbeat 'pings'
             if ((clientSentence != null) && (!clientSentence.isEmpty())) {
-                System.out.println("Received: " + clientSentence);
-
+                if((clientSentence.contains("ping")) || (clientSentence.contains("pingreply"))) {
+                } else {
+//                    System.out.println("Received: " + clientSentence);
+                }
                 paxosObject.handleMsg(clientSentence);
             } else {
 //                System.out.println("Thump");
@@ -286,6 +292,8 @@ public class ClientServer implements Runnable {
 
     public static void fail() {
         System.out.println("USER FAIL: Stopping the listener thread.");
+        isFail = 1;
+        HeartBeat.lifeTable[serverId] = 0;
         listenerTrue = false;
     }
 
@@ -293,6 +301,8 @@ public class ClientServer implements Runnable {
         System.out.println("USER UNFAIL: Starting the listener thread again.");
         // begin listening again
         listenerTrue = true;
+        isFail = 0;
+        HeartBeat.lifeTable[serverId] = 1;
         // get size from local log
 //        int size = Log.transactionLog.size();
 //        System.out.println("local size of log: "+size);
@@ -308,14 +318,14 @@ public class ClientServer implements Runnable {
         int p = serverPorts[server_id];
         String serverName = serverIPs[server_id];
 
-        System.out.println("Sending " + m + " to: " + serverName + " on port: " + p);
+//        System.out.println("Sending " + m + " to: " + serverName + " on port: " + p);
 
         Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         outToServer.writeBytes(m);
         clientSocket.close();
-        System.out.println("Finished sending.");
+//        System.out.println("Finished sending.");
 
     }
 
@@ -323,8 +333,8 @@ public class ClientServer implements Runnable {
 
         for (int i = 0; i < 5; ++i) {
             if (HeartBeat.lifeTable[i] == 1) {
-                System.out.println("Heartbeat at: " + i);
-                System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
+//                System.out.println("Heartbeat at: " + i);
+//                System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
                 int p = serverPorts[i];
                 Socket clientSocket = new Socket(serverIPs[i], p);
                 DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -335,13 +345,27 @@ public class ClientServer implements Runnable {
         }
     }
     
+    public static void sendPingAll(String prepareMsg) throws Exception {
+
+        for (int i = 0; i < 5; ++i) {
+//                System.out.println("Heartbeat at: " + i);
+//                System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
+                int p = serverPorts[i];
+                Socket clientSocket = new Socket(serverIPs[i], p);
+                DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                outToServer.writeBytes(prepareMsg);
+                clientSocket.close();
+        }
+    }
+    
     public static void sendPollToAll(String prepareMsg) throws Exception {
 
         for (int i = 0; i < 5; ++i) {
             if (HeartBeat.lifeTable[i] == 1) {
                 if(i == serverId) {} else {
-                    System.out.println("Heartbeat at: " + i);
-                    System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
+//                    System.out.println("Heartbeat at: " + i);
+//                    System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
                     int p = serverPorts[i];
                     Socket clientSocket = new Socket(serverIPs[i], p);
                     DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
