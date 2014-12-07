@@ -24,7 +24,7 @@ public class ClientServer implements Runnable {
         "54.174.167.183", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.167.183  
         "54.174.226.59", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.226.59 
         "54.86.223.159", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.86.223.159 
-        "54.174.201.123", //
+        "54.174.201.123", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.201.123 
         "54.174.164.18"}; //
 //    public static String[] serverIpPrivate = {
 //        "ec2-54-174-167-183.compute-1.amazonaws.com",
@@ -89,7 +89,8 @@ public class ClientServer implements Runnable {
 
 //                            welcomeSocket.close(); //???
                         } catch (IOException ex) {
-                            System.out.println("Server socket: " + ex);
+                            System.out.println("Connection socket: " + ex);
+                            ex.printStackTrace();
                         }
                     }
                 }
@@ -101,7 +102,7 @@ public class ClientServer implements Runnable {
             public void run() {
                 System.out.println("Waiting for log...");
                 try {
-                    // init welcomeSocket ONLY once
+                    // init log ONLY once
                     logSocket = new ServerSocket(logPort);
                 } catch (IOException ex) {
                     System.out.println("logSocket: " + ex);
@@ -237,15 +238,13 @@ public class ClientServer implements Runnable {
                 unfail();
             } else if (input[0].equals("print")) {
                 logObject.printLog();
-            } //            else if (input[0].equals("write"))
-            //            {
-            //                for(int i = 0; i < logObject.transactionLog.size(); i++) {                    
-            //                    String a = logObject.transactionLog.get(i).type;
-            //                    String b = Double.toString(logObject.transactionLog.get(i).amount);
-            //                    String c = Integer.toString(logObject.transactionLog.get(i).logPosition);
-            //                    logObject.writeToFile(a + " " + b + " " + c);
-            //                }
-            //            }
+            } else if(input[0].equals("update")) {
+                int size = Log.transactionLog.size();
+                System.out.println("local size of log: "+size);
+                // poll others for largest size
+                String pollMsg = "sizepoll " + serverId;
+                sendPollToAll(pollMsg);
+            }
             // added simply for testing 
             else if (input[0].equals("send")) {
                 // send message input[1] to server at port input[2]
@@ -295,10 +294,11 @@ public class ClientServer implements Runnable {
         // begin listening again
         listenerTrue = true;
         // get size from local log
-        int size = Log.transactionLog.size();
-        // poll others for largest size
-        String pollMsg = "sizepoll " + serverId;
-        sendToAll(pollMsg);
+//        int size = Log.transactionLog.size();
+//        System.out.println("local size of log: "+size);
+//        // poll others for largest size
+//        String pollMsg = "sizepoll " + serverId;
+//        sendPollToAll(pollMsg);
     }
 
     // switch up ports and stuffs
@@ -331,6 +331,24 @@ public class ClientServer implements Runnable {
                 BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 outToServer.writeBytes(prepareMsg);
                 clientSocket.close();
+            }
+        }
+    }
+    
+    public static void sendPollToAll(String prepareMsg) throws Exception {
+
+        for (int i = 0; i < 5; ++i) {
+            if (HeartBeat.lifeTable[i] == 1) {
+                if(i == serverId) {} else {
+                    System.out.println("Heartbeat at: " + i);
+                    System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
+                    int p = serverPorts[i];
+                    Socket clientSocket = new Socket(serverIPs[i], p);
+                    DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                    BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    outToServer.writeBytes(prepareMsg);
+                    clientSocket.close();
+                }
             }
         }
     }

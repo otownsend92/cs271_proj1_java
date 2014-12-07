@@ -31,6 +31,6 @@ public class HeartBeat {
             }
         }
         numProc = alive;
-//        System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
+        System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
     }
 }
