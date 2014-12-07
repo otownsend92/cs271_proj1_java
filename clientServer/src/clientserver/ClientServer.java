@@ -72,15 +72,18 @@ public class ClientServer implements Runnable {
                 }
                 while (true) {
                     if (!listenerTrue) {
-//                        try {
-//                            // don't listen
-//                            welcomeSocket.close();
-//                        } catch (IOException ex) {
-//                            System.out.println(ex);
-//                        }
+                        try {
+                            // don't listen
+                            welcomeSocket.close();
+                        } catch (IOException ex) {
+                            System.out.println(ex);
+                        }
 
                     } else {
                         try {
+                            if(welcomeSocket.isClosed()) {
+                                welcomeSocket = new ServerSocket(serverPorts[serverId]);
+                            }
                             Socket connectionSocket = new Socket();
                             connectionSocket.setSoTimeout(100);
                             connectionSocket = welcomeSocket.accept();
@@ -88,7 +91,6 @@ public class ClientServer implements Runnable {
 
                             new Thread(new ClientServer(connectionSocket)).start();
 
-//                            welcomeSocket.close(); //???
                         } catch (IOException ex) {
                             System.out.println("Connection socket: " + ex);
                             ex.printStackTrace();
@@ -150,7 +152,7 @@ public class ClientServer implements Runnable {
                     // runs forever in a loop, and waits for let's say, 3 sec before running again?
                     try {
 //                        System.out.println("Entering heartbeat thread...");
-                        HeartBeat.pingAllNew(); // this should update the "numProc" int in HeartBeat.java
+                        HeartBeat.pingAll(); // this should update the "numProc" int in HeartBeat.java
 
                         // wait 3s
                         sleep(3000);
@@ -263,25 +265,18 @@ public class ClientServer implements Runnable {
 
     public void run() {
         try {
-            // Handler thread
+            // Handler thread runnable
 //            System.out.println("Spawning new handler thread...");
             String clientSentence;
 
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(csocket.getInputStream()));
-            DataOutputStream outToClient = new DataOutputStream(csocket.getOutputStream());
             clientSentence = inFromClient.readLine();
 
-            // Going to need to handle the received messages in here
-            // This includes heartbeat 'pings'
             if ((clientSentence != null) && (!clientSentence.isEmpty())) {
-                if((clientSentence.contains("ping")) || (clientSentence.contains("pingreply"))) {
-                } else {
 //                    System.out.println("Received: " + clientSentence);
-                }
                 paxosObject.handleMsg(clientSentence);
             } else {
 //                System.out.println("Thump");
-//                System.out.println(listenerTrue);
             }
         } catch (IOException e) {
             System.out.println(e);
@@ -292,8 +287,6 @@ public class ClientServer implements Runnable {
 
     public static void fail() {
         System.out.println("USER FAIL: Stopping the listener thread.");
-        isFail = 1;
-        HeartBeat.lifeTable[serverId] = 0;
         listenerTrue = false;
     }
 
@@ -301,17 +294,14 @@ public class ClientServer implements Runnable {
         System.out.println("USER UNFAIL: Starting the listener thread again.");
         // begin listening again
         listenerTrue = true;
-        isFail = 0;
-        HeartBeat.lifeTable[serverId] = 1;
         // get size from local log
-//        int size = Log.transactionLog.size();
-//        System.out.println("local size of log: "+size);
-//        // poll others for largest size
-//        String pollMsg = "sizepoll " + serverId;
-//        sendPollToAll(pollMsg);
+        int size = Log.transactionLog.size();
+        System.out.println("local size of log: "+size);
+        // poll others for largest size
+        String pollMsg = "sizepoll " + serverId;
+        sendPollToAll(pollMsg);
     }
 
-    // switch up ports and stuffs
     public static void sendTo(String m, String serverId) throws Exception {
 
         int server_id = Integer.parseInt(serverId);
@@ -342,20 +332,6 @@ public class ClientServer implements Runnable {
                 outToServer.writeBytes(prepareMsg);
                 clientSocket.close();
             }
-        }
-    }
-    
-    public static void sendPingAll(String prepareMsg) throws Exception {
-
-        for (int i = 0; i < 5; ++i) {
-//                System.out.println("Heartbeat at: " + i);
-//                System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
-                int p = serverPorts[i];
-                Socket clientSocket = new Socket(serverIPs[i], p);
-                DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                outToServer.writeBytes(prepareMsg);
-                clientSocket.close();
         }
     }
     
