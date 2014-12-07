@@ -153,7 +153,9 @@ public class Paxos {
 
             if (ackedValues.isEmpty()) {
                 if (phase2) {
-
+                    // // already sent out broadcast. do nothing
+                }
+                else {
                     // I WON ELECTION, send accept with my original proposed value
                     phase2 = true;
                     String winMsg = "accept "
