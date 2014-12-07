@@ -1,5 +1,7 @@
 package clientserver;
 
+import static clientserver.Log.transactionLog;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Vector;
@@ -347,13 +349,13 @@ public class Paxos {
             acceptedVal.type = message[3];
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
-
+            
             Log.addToTransactionLog(acceptedVal);
             leader = false;
 
-            if (acceptedVal == val) {
+            if (acceptedVal.equals(val)) {
                 PaxosQueue.isProposing = false;
-                PaxosQueue.transactionQueue.remove(0);
+                PaxosQueue.transactionQueue.removeElement(val);
             }
             // reset for next iteration
             numFinalA = 0;

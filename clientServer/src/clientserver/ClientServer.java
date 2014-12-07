@@ -12,6 +12,7 @@ public class ClientServer implements Runnable {
     // make new paxos object
     public static Paxos paxosObject = new Paxos();
     public static PaxosQueue paxosQueueObj = new PaxosQueue();
+    public static Log logObject = new Log();
 
     public static int serverId;
     public static double balance = 0.0;
@@ -143,8 +144,12 @@ public class ClientServer implements Runnable {
                     input[1] = (input[1].substring(1, input[1].length() - 1));
                     System.out.println("Depositing: " + input[1]);
                     // Adding to queue
-//                    paxosQueueObj.transactionQueue.add(input);
-                    paxosObject.prepareMsg(input);
+                    paxosQueueObj.transactionQueue.add(input);
+                    for(int i = 0; i < paxosQueueObj.transactionQueue.size();i++) {
+                        String []s = paxosQueueObj.transactionQueue.elementAt(i);
+                        System.out.println(Arrays.toString(s));
+                    }
+//                    paxosObject.prepareMsg(input);
                 } catch (Exception e) {
                     System.out.println("Try deposit: " + e);
                     e.printStackTrace();
@@ -153,20 +158,20 @@ public class ClientServer implements Runnable {
                 double amount;
                 try {
                     input[1] = (input[1].substring(1, input[1].length() - 1));
-                    if (Log.balance < Double.parseDouble(input[1])) {
+                    if (logObject.balance < Double.parseDouble(input[1])) {
                         // Nonsufficient funds
                         System.out.println("Withdraw of: " + input[1] + " failed. Insufficient funds.");
                     } else {
                         // Adding to queue
                         System.out.println("Withdrawing: " + input[1]);
-//                        paxosQueueObj.transactionQueue.add(input);
-                        paxosObject.prepareMsg(input);
+                        paxosQueueObj.transactionQueue.add(input);
+//                        paxosObject.prepareMsg(input);
                     }
                 } catch (Exception e) {
                     System.out.println("Invalid command.");
                 }
             } else if (input[0].equals("balance")) {
-                System.out.println("Balance is: " + Log.getBalance());
+                System.out.println("Balance is: " + logObject.getBalance());
             } else if (input[0].equals("fail")) {
                 System.out.println("Failing...");
                 fail();
@@ -175,17 +180,17 @@ public class ClientServer implements Runnable {
                 unfail();
             } 
             else if (input[0].equals("print")) {
-                Log.printLog();
+                logObject.printLog();
             }
-            else if (input[0].equals("write"))
-            {
-                for(int i = 0; i < Log.transactionLog.size(); i++) {                    
-                    String a = Log.transactionLog.get(i).type;
-                    String b = Double.toString(Log.transactionLog.get(i).amount);
-                    String c = Integer.toString(Log.transactionLog.get(i).logPosition);
-                    Log.writeToFile(a + " " + b + " " + c);
-                }
-            }
+//            else if (input[0].equals("write"))
+//            {
+//                for(int i = 0; i < logObject.transactionLog.size(); i++) {                    
+//                    String a = logObject.transactionLog.get(i).type;
+//                    String b = Double.toString(logObject.transactionLog.get(i).amount);
+//                    String c = Integer.toString(logObject.transactionLog.get(i).logPosition);
+//                    logObject.writeToFile(a + " " + b + " " + c);
+//                }
+//            }
 
             // added simply for testing 
             else if (input[0].equals("send")) {

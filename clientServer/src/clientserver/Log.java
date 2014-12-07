@@ -11,10 +11,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Log {
 
-    public static ArrayList<Paxos.Value> transactionLog = new ArrayList();
+   
+    public static Vector<String> transactionLog = new Vector();
+
     public static double balance;
     static String path = "./log.txt";
     static boolean append_to_file = true;
@@ -37,10 +41,15 @@ public class Log {
 //        Paxos.Value val = null;
 //        val.amount = Double.parseDouble(message[2]);
 //        val.type = message[1];
-        val.logPosition = transactionLog.size();
-        
-        transactionLog.add(val.logPosition, val);
+
+        String entry = val.type + " " + val.amount + " " + val.logPosition; 
+        transactionLog.add(entry);
         updateBalance(val.type, val.amount);
+        try {
+            writeToFile(entry);
+        } catch (IOException ex) {
+            Logger.getLogger(Log.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /*
@@ -64,8 +73,8 @@ public class Log {
     
     public static void printLog() {
         for (int i = 0; i<transactionLog.size(); ++i) {
-            Paxos.Value val = transactionLog.get(i);
-            System.out.println("Log " + i + ": " + val.type + " " + val.amount);
+            String val = transactionLog.elementAt(i);
+            System.out.println("Log " + i + ": " + val);
             
         }
     }
