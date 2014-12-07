@@ -177,6 +177,15 @@ public class ClientServer implements Runnable {
             else if (input[0].equals("print")) {
                 Log.printLog();
             }
+            else if (input[0].equals("write"))
+            {
+                for(int i = 0; i < Log.transactionLog.size(); i++) {                    
+                    String a = Log.transactionLog.elementAt(i).type;
+                    String b = Double.toString(Log.transactionLog.elementAt(i).amount);
+                    String c = Integer.toString(Log.transactionLog.elementAt(i).logPosition);
+                    Log.writeToFile(a + " " + b + " " + c);
+                }
+            }
 
             // added simply for testing 
             else if (input[0].equals("send")) {

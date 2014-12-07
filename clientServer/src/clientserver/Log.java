@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -14,13 +15,13 @@ public class Log {
 
     public static Vector<Paxos.Value> transactionLog = new Vector();
     public static double balance;
-    String path = "./";
-    boolean append_to_file = true;
+    static String path = "./log.txt";
+    static boolean append_to_file = true;
 
     
-    public void writeToFile(String textLine) throws IOException {
-        
-        FileWriter write = new FileWriter(path, append_to_file);
+    public static void writeToFile(String textLine) throws IOException {        
+        FileWriter write;
+        write = new FileWriter(path, append_to_file);
         PrintWriter print_line = new PrintWriter(write);
         
         print_line.printf("%s" + "%n", textLine);
@@ -37,7 +38,7 @@ public class Log {
 //        val.type = message[1];
         val.logPosition = transactionLog.size();
         
-        transactionLog.addElement(val);
+        transactionLog.add(val.logPosition, val);
         updateBalance(val.type, val.amount);
     }
     
@@ -61,7 +62,6 @@ public class Log {
     }
     
     public static void printLog() {
-        
         for (int i = 0; i<transactionLog.size(); ++i) {
             Paxos.Value val = transactionLog.get(i);
             System.out.println("Log " + i + ": " + val.type + " " + val.amount);
