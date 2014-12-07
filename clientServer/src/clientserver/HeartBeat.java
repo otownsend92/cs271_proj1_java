@@ -47,29 +47,4 @@ public class HeartBeat {
 //        System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
     }
     
-    public static void pingAllNew() throws Exception {
-        System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
-        String ping = "ping " + ClientServer.serverId;
-        ClientServer.sendPingAll(ping);
-        
-    }
-    
-    public static void handlePing(String [] msg) throws Exception {
-        String replyId = msg[1];
-        int isFail = ClientServer.isFail;
-        String pingReply = "pingreply " + isFail + " " + ClientServer.serverId;
-//        System.out.println(pingReply);
-        
-        ClientServer.sendTo(pingReply, replyId);
-    }
-    
-    public static void handlePingReply(String [] msg) {
-        int index = Integer.parseInt(msg[2]);
-        int isFail = Integer.parseInt(msg[1]);
-//        System.out.println(index+ " "+ isFail);
-        if(isFail == 0) lifeTable[index] = 1; else {
-            lifeTable[index] = 0;
-        }
-        
-    }
 }
