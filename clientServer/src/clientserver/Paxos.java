@@ -102,7 +102,7 @@ public class Paxos {
             Log.sendLog(message[1]);
         } else if (message[0].equals("mysize")) {
             handleSizeResponse(message);
-        } 
+        }
 
     }
 
@@ -143,75 +143,76 @@ public class Paxos {
     }
 
     public void handleAckNew(String[] message) {
-        if(phase2) {}
-        else {ackCount++;
+        if (phase2) {
+        } else {
+            ackCount++;
 
-        Value tempVal = new Value();
-        tempVal.balNum = Integer.parseInt(message[1]);
-        tempVal.balNumServerId = Integer.parseInt(message[2]);
-        tempVal.type = message[3];
-        tempVal.amount = Double.parseDouble(message[4]);
-        tempVal.logPosition = Integer.parseInt(message[5]);
+            Value tempVal = new Value();
+            tempVal.balNum = Integer.parseInt(message[1]);
+            tempVal.balNumServerId = Integer.parseInt(message[2]);
+            tempVal.type = message[3];
+            tempVal.amount = Double.parseDouble(message[4]);
+            tempVal.logPosition = Integer.parseInt(message[5]);
 
-        if (!tempVal.type.equals("blank")) {
-            ackedValues.add(tempVal);
-            var = true;
-        }
+            if (!tempVal.type.equals("blank")) {
+                ackedValues.add(tempVal);
+                var = true;
+            }
+            double majority = (double) ackCount / (HeartBeat.numProc);
+            System.out.println(majority);
+            if ((majority > 0.5) && (HeartBeat.numProc >= 3)) {
 
-        double majority = (double) ackCount / (HeartBeat.numProc);
-        System.out.println(majority);
-        if (majority > 0.5) {
+                if (!var) {
+                    if (phase2) {
+                        // // already sent out broadcast. do nothing
+                    } else {
+                        // I WON ELECTION, send accept with my original proposed value
+                        phase2 = true;
+                        String winMsg = "accept "
+                                + generateNum + " "
+                                + ClientServer.serverId + " "
+                                + val.type + " "
+                                + val.amount + " "
+                                + val.logPosition;
+                        try {
+                            // I won
+                            System.out.println("We have a consensus, broadcasting out the accept");
+                            ClientServer.sendToAll(winMsg);
+                            leader = true; // ???????? not sure
+                        } catch (Exception ex) {
+                            System.out.println(ex);
+                        }
+                        ackCount = 0;
+                    }
+                } else {
 
-            if (!var) {
-                if (phase2) {
-                    // // already sent out broadcast. do nothing
-                }
-                else {
-                    // I WON ELECTION, send accept with my original proposed value
-                    phase2 = true;
-                    String winMsg = "accept "
+                    // I LOST ELECTION
+                    // use val with highest ballotNum in ackedVals
+                    Value newVal = findHighestVal();
+
+                    String concedeMsg = "accept "
                             + generateNum + " "
                             + ClientServer.serverId + " "
-                            + val.type + " "
-                            + val.amount + " "
-                            + val.logPosition;
+                            + newVal.type + " "
+                            + newVal.amount + " "
+                            + newVal.logPosition;
                     try {
-                        // I won
-                        System.out.println("We have a consensus, broadcasting out the accept");
-                        ClientServer.sendToAll(winMsg);
-                        leader = true; // ???????? not sure
+                        // Accept the higher ballot
+                        System.out.println("Sending concede accept");
+                        ClientServer.sendToAll(concedeMsg);
+                        leader = false;
+                        // Try to prepare another proposal
+                        generateNum = newVal.balNum + 1;
+                        regeneratePrepare();
                     } catch (Exception ex) {
                         System.out.println(ex);
                     }
                     ackCount = 0;
                 }
-            } else {
-                
-                // I LOST ELECTION
-                // use val with highest ballotNum in ackedVals
-                Value newVal = findHighestVal();
-
-                String concedeMsg = "accept "
-                        + generateNum + " "
-                        + ClientServer.serverId + " "
-                        + newVal.type + " "
-                        + newVal.amount + " "
-                        + newVal.logPosition;
-                try {
-                    // Accept the higher ballot
-                    System.out.println("Sending concede accept");
-                    ClientServer.sendToAll(concedeMsg);
-                    leader = false;
-                    // Try to prepare another proposal
-                    generateNum = newVal.balNum + 1;
-                    regeneratePrepare();
-                } catch (Exception ex) {
-                    System.out.println(ex);
-                }
-                ackCount = 0;
+                ackedValues.removeAllElements();
+            } else if (HeartBeat.numProc < 3) {
+                System.out.println("Cannot reach majority, not enough servers.");
             }
-            ackedValues.removeAllElements();
-        }
         }
     }
 
@@ -246,67 +247,67 @@ public class Paxos {
     public void handleAck(String[] message) {
 
 //        if (leader) {
-            // I think I'm the leader
-            int receivedBalNum = Integer.parseInt(message[1]);
-            int receivedBalNumServerId = Integer.parseInt(message[2]);
-            // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
-            if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > ClientServer.serverId))) {
-                // Lost election
-                System.out.println("Didn't get a vote");
-                // Set myVal to the node val who won election
-                // This is the value object
-                myVal.type = message[3];
-                myVal.amount = Double.parseDouble(message[4]);
-                myVal.logPosition = Integer.parseInt(message[5]);
+        // I think I'm the leader
+        int receivedBalNum = Integer.parseInt(message[1]);
+        int receivedBalNumServerId = Integer.parseInt(message[2]);
+        // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
+        if ((receivedBalNum > generateNum) || ((receivedBalNum == generateNum) && (receivedBalNumServerId > ClientServer.serverId))) {
+            // Lost election
+            System.out.println("Didn't get a vote");
+            // Set myVal to the node val who won election
+            // This is the value object
+            myVal.type = message[3];
+            myVal.amount = Double.parseDouble(message[4]);
+            myVal.logPosition = Integer.parseInt(message[5]);
 
-                String concedeMsg = "accept "
-                        + generateNum + " "
-                        + ClientServer.serverId + " "
-                        + myVal.type + " "
-                        + myVal.amount + " "
-                        + myVal.logPosition;
-                try {
-                    // Accept the higher ballot
-                    System.out.println("Sending concede accept");
-                    ClientServer.sendToAll(concedeMsg);
-                    leader = false;
-                    // Try to prepare another proposal
-                    generateNum = receivedBalNum + 1;
-                    regeneratePrepare();
-                } catch (Exception ex) {
-                    System.out.println(ex);
-                }
+            String concedeMsg = "accept "
+                    + generateNum + " "
+                    + ClientServer.serverId + " "
+                    + myVal.type + " "
+                    + myVal.amount + " "
+                    + myVal.logPosition;
+            try {
+                // Accept the higher ballot
+                System.out.println("Sending concede accept");
+                ClientServer.sendToAll(concedeMsg);
+                leader = false;
+                // Try to prepare another proposal
+                generateNum = receivedBalNum + 1;
+                regeneratePrepare();
+            } catch (Exception ex) {
+                System.out.println(ex);
+            }
 
+        } else {
+            if (phase2) {
+                // already sent out broadcast. do nothing
             } else {
-                if (phase2) {
-                    // already sent out broadcast. do nothing
-                } else {
-                    // Won election   
-                    System.out.println("Got a vote!");
-                    ackCount++;
-                    double majority = (double) ackCount / (HeartBeat.numProc);
-                    System.out.println(majority);
-                    if (majority > 0.5) {
-                        // Consensus
-                        phase2 = true;
-                        String winMsg = "accept "
-                                + generateNum + " "
-                                + ClientServer.serverId + " "
-                                + val.type + " "
-                                + val.amount + " "
-                                + val.logPosition;
-                        try {
-                            // I won
-                            System.out.println("We have a consensus, broadcasting out the accept");
-                            ClientServer.sendToAll(winMsg);
-                            leader = true; // ???????????? not sure
-                        } catch (Exception ex) {
-                            System.out.println(ex);
-                        }
-                        ackCount = 0;
+                // Won election   
+                System.out.println("Got a vote!");
+                ackCount++;
+                double majority = (double) ackCount / (HeartBeat.numProc);
+                System.out.println(majority);
+                if (majority > 0.5) {
+                    // Consensus
+                    phase2 = true;
+                    String winMsg = "accept "
+                            + generateNum + " "
+                            + ClientServer.serverId + " "
+                            + val.type + " "
+                            + val.amount + " "
+                            + val.logPosition;
+                    try {
+                        // I won
+                        System.out.println("We have a consensus, broadcasting out the accept");
+                        ClientServer.sendToAll(winMsg);
+                        leader = true; // ???????????? not sure
+                    } catch (Exception ex) {
+                        System.out.println(ex);
                     }
+                    ackCount = 0;
                 }
             }
+        }
 
 //        } else {
 //            // Not leader - do nothing
@@ -326,8 +327,8 @@ public class Paxos {
         int receivedBalNumServerId = Integer.parseInt(message[2]);
 
         // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
-        if ((receivedBalNum >= generateNum) || 
-                ((receivedBalNum == generateNum) && (receivedBalNumServerId >= ClientServer.serverId))) {
+        if ((receivedBalNum >= generateNum)
+                || ((receivedBalNum == generateNum) && (receivedBalNumServerId >= ClientServer.serverId))) {
             acceptedVal.type = message[3];
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
@@ -356,10 +357,10 @@ public class Paxos {
             acceptedVal.type = message[3];
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
-            
+
             Log.addToTransactionLog(acceptedVal);
             leader = false;
-            
+
             if ((acceptedVal.type.equals(val.type))
                     && (acceptedVal.amount == val.amount)
                     && (acceptedVal.logPosition == val.logPosition)) {
@@ -375,31 +376,28 @@ public class Paxos {
             System.out.println("Decided on: " + acceptedVal.amount);
         }
     }
-    
-    public static void handleSizeRequest(String [] request) throws Exception {
+
+    public static void handleSizeRequest(String[] request) throws Exception {
         // send size of local log back to server with attached ID
         int size = Log.transactionLog.size();
         String sizeResponse = "mysize " + size + " " + ClientServer.serverId;
         ClientServer.sendTo(sizeResponse, request[1]);
     }
-    
-    public static void handleSizeResponse(String [] response) throws Exception {
-        
+
+    public static void handleSizeResponse(String[] response) throws Exception {
+
         // if local is up to date, import data
         int size = Integer.parseInt(response[1]);
         int server = Integer.parseInt(response[2]);
         ClientServer.logSizes[server] = size;
 
         ClientServer.heardFrom++;
-        if(ClientServer.heardFrom == HeartBeat.numProc) {
+        if (ClientServer.heardFrom == HeartBeat.numProc) {
             ClientServer.requestLog();
         }
         // else, get data from the most up to date process
-        
-        
+
         // also need to prevent user from sending messages?
-        
-        
         ClientServer.heardFrom = 0;
     }
 }

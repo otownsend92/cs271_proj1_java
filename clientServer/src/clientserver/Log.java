@@ -84,7 +84,7 @@ public class Log {
     }
 
     public static void sendLog(String serverId) throws IOException, ClassNotFoundException {
-        
+
         int s = Integer.parseInt(serverId);
         Socket connectionSocket = new Socket(ClientServer.serverIPs[s], ClientServer.logPort);
         DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
@@ -92,7 +92,7 @@ public class Log {
         OutputStream socketStream = connectionSocket.getOutputStream();
         ObjectOutput objectOutput = new ObjectOutputStream(socketStream);
         objectOutput.writeObject(transactionLog);
-        
+
         connectionSocket.close();
     }
 

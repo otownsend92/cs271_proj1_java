@@ -6,6 +6,9 @@ import java.net.Socket;
 import java.io.*;
 import static java.lang.Thread.sleep;
 import java.util.Arrays;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientServer implements Runnable {
 
@@ -31,15 +34,15 @@ public class ClientServer implements Runnable {
 //        "ec2-54-174-164-18.compute-1.amazonaws.com"
 //    };
     public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
-    public static int[] logSizes = {0,0,0,0,0};
+    public static int[] logSizes = {0, 0, 0, 0, 0};
     public static int logPort = 1210;
 
     static boolean listenerTrue = true;
 
     String clientSentence, capitalizedSentence;
     Socket csocket;
-    static ServerSocket welcomeSocket;
-    static Thread listenerThread;
+    static ServerSocket welcomeSocket, logSocket;
+    static Thread listenerThread, logThread;
 
     ClientServer(Socket csocket) {
         this.csocket = csocket;
@@ -93,6 +96,51 @@ public class ClientServer implements Runnable {
             }
         };
 
+        // log port thread stuff
+        logThread = new Thread() {
+            public void run() {
+                System.out.println("Waiting for log...");
+                try {
+                    // init welcomeSocket ONLY once
+                    logSocket = new ServerSocket(logPort);
+                } catch (IOException ex) {
+                    System.out.println("logSocket: " + ex);
+                }
+                while (true) {
+                    if (!listenerTrue) {
+                        try {
+                            // don't listen
+                            logSocket.close();
+                        } catch (IOException ex) {
+                            System.out.println(ex);
+                        }
+
+                    } else {
+                        try {
+                            Socket newSock = new Socket();
+                            newSock.setSoTimeout(100);
+                            newSock = logSocket.accept();
+                            System.out.println("Connected to log port");
+                            // now can receive data
+
+                            InputStream socketStream = newSock.getInputStream();
+                            ObjectInputStream objectInput = new ObjectInputStream(socketStream);
+                            Vector<String> receivedLog = (Vector<String>) objectInput.readObject();
+                            newSock.close();
+
+                            Log.transactionLog = receivedLog;
+                            System.out.println(Log.transactionLog);
+
+                        } catch (IOException ex) {
+                            System.out.println("newSock socket: " + ex);
+                        } catch (ClassNotFoundException ex) {
+                            Logger.getLogger(ClientServer.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+        };
+
         // Heartbeat thread stuff
         Thread heartBeatThread = new Thread() {
             public void run() {
@@ -128,6 +176,8 @@ public class ClientServer implements Runnable {
         heartBeatThread.start();
         // Start the queue thread
         queueWatchdogThread.start();
+        // Start the log thread
+        logThread.start();
 
         // Start main thread for input
         while (true) {
@@ -148,8 +198,8 @@ public class ClientServer implements Runnable {
                     System.out.println("Depositing: " + input[1]);
                     // Adding to queue
                     paxosQueueObj.transactionQueue.add(input);
-                    for(int i = 0; i < paxosQueueObj.transactionQueue.size();i++) {
-                        String []s = paxosQueueObj.transactionQueue.elementAt(i);
+                    for (int i = 0; i < paxosQueueObj.transactionQueue.size(); i++) {
+                        String[] s = paxosQueueObj.transactionQueue.elementAt(i);
                         System.out.println(Arrays.toString(s));
                     }
 //                    paxosObject.prepareMsg(input);
@@ -168,8 +218,8 @@ public class ClientServer implements Runnable {
                         // Adding to queue
                         System.out.println("Withdrawing: " + input[1]);
                         paxosQueueObj.transactionQueue.add(input);
-                        for(int i = 0; i < paxosQueueObj.transactionQueue.size();i++) {
-                            String []s = paxosQueueObj.transactionQueue.elementAt(i);
+                        for (int i = 0; i < paxosQueueObj.transactionQueue.size(); i++) {
+                            String[] s = paxosQueueObj.transactionQueue.elementAt(i);
                             System.out.println(Arrays.toString(s));
                         }
 //                        paxosObject.prepareMsg(input);
@@ -185,20 +235,17 @@ public class ClientServer implements Runnable {
             } else if (input[0].equals("unfail")) {
                 System.out.println("Unfailing...");
                 unfail();
-            } 
-            else if (input[0].equals("print")) {
+            } else if (input[0].equals("print")) {
                 logObject.printLog();
-            }
-//            else if (input[0].equals("write"))
-//            {
-//                for(int i = 0; i < logObject.transactionLog.size(); i++) {                    
-//                    String a = logObject.transactionLog.get(i).type;
-//                    String b = Double.toString(logObject.transactionLog.get(i).amount);
-//                    String c = Integer.toString(logObject.transactionLog.get(i).logPosition);
-//                    logObject.writeToFile(a + " " + b + " " + c);
-//                }
-//            }
-
+            } //            else if (input[0].equals("write"))
+            //            {
+            //                for(int i = 0; i < logObject.transactionLog.size(); i++) {                    
+            //                    String a = logObject.transactionLog.get(i).type;
+            //                    String b = Double.toString(logObject.transactionLog.get(i).amount);
+            //                    String c = Integer.toString(logObject.transactionLog.get(i).logPosition);
+            //                    logObject.writeToFile(a + " " + b + " " + c);
+            //                }
+            //            }
             // added simply for testing 
             else if (input[0].equals("send")) {
                 // send message input[1] to server at port input[2]
@@ -233,6 +280,8 @@ public class ClientServer implements Runnable {
             }
         } catch (IOException e) {
             System.out.println(e);
+        } catch (Exception ex) {
+            Logger.getLogger(ClientServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -251,8 +300,6 @@ public class ClientServer implements Runnable {
         String pollMsg = "sizepoll " + serverId;
         sendToAll(pollMsg);
     }
-    
-    
 
     // switch up ports and stuffs
     public static void sendTo(String m, String serverId) throws Exception {
@@ -269,16 +316,15 @@ public class ClientServer implements Runnable {
         outToServer.writeBytes(m);
         clientSocket.close();
         System.out.println("Finished sending.");
-        
+
     }
 
     public static void sendToAll(String prepareMsg) throws Exception {
-        
-        
+
         for (int i = 0; i < 5; ++i) {
-            if(HeartBeat.lifeTable[i] == 1) {
+            if (HeartBeat.lifeTable[i] == 1) {
                 System.out.println("Heartbeat at: " + i);
-                System.out.println("Sending to" + serverIPs[i] +":"+serverPorts[i]);
+                System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
                 int p = serverPorts[i];
                 Socket clientSocket = new Socket(serverIPs[i], p);
                 DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -288,23 +334,22 @@ public class ClientServer implements Runnable {
             }
         }
     }
-    
+
     public static void requestLog() throws Exception {
-        
+
         int chosenServer = 0;
-        for(int i = 0; i < logSizes.length; i++){
-            if(logSizes[i] > Log.transactionLog.size()){
+        for (int i = 0; i < logSizes.length; i++) {
+            if (logSizes[i] > Log.transactionLog.size()) {
                 chosenServer = i;
             }
         }
-        if(chosenServer != 0) {
+        if (chosenServer != 0) {
             // request log from other server
             String requestLog = "requestlog " + serverId;
             sendTo(requestLog, Integer.toString(chosenServer));
-        }
-        else {
+        } else {
             // else rebuild from yourself
         }
-        
+
     }
 }
