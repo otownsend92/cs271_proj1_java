@@ -27,7 +27,7 @@ public class Paxos {
     int numFinalA = 0;
 
     int minBallotNum = 0;
-    int minBallotNumServerId = 0; //set this later
+    int minBallotNumServerId = 0; //TESTING THIS? WHAT DO I SET THIS TO???
     boolean leader = false;
     boolean phase2 = false;
 
@@ -49,7 +49,7 @@ public class Paxos {
                 
         String prepareMsg = "prepare " + generateNum + " " + ClientServer.serverId; 
         try {
-//            System.out.println("SENDTOALL BEFORE START: " + prepareMsg);
+            System.out.println("Sending prepareMsg");
             ClientServer.sendToAll(prepareMsg);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -99,9 +99,9 @@ public class Paxos {
     public void handlePrepare(String[] message) {
         int ballotNum = Integer.parseInt(message[1]);
         int ballotNumServerId = Integer.parseInt(message[2]);
-        if ((ballotNum > minBallotNum) || ((ballotNum == minBallotNum) && (minBallotNumServerId > ballotNumServerId))) {
+        if ((ballotNum > minBallotNum) || ((ballotNum == minBallotNum) && (minBallotNumServerId >= ballotNumServerId))) {
             minBallotNum = ballotNum;
-
+            System.out.println("IFSTATEMENT");
             /*
              TODO:
              If have already accepted proposal - set reply Value value to this val,
@@ -117,6 +117,7 @@ public class Paxos {
                 + acceptedVal.amount + " "
                 + acceptedVal.logPosition;
         try {
+            System.out.println("Sending ack");
             ClientServer.sendTo(reply, Integer.toString(ballotNumServerId));  
         } catch (Exception ex) {
             System.out.println(ex);
@@ -156,6 +157,7 @@ public class Paxos {
                         + myVal.logPosition;
                 try {
                     // Accept the higher ballot
+                    System.out.println("Sending concede accept");
                     ClientServer.sendToAll(concedeMsg);
                     leader = false;
                     // Try to prepare another proposal
@@ -227,6 +229,7 @@ public class Paxos {
                     + acceptedVal.logPosition;
 
             try {
+                System.out.println("Broadcasting final accept");
                 ClientServer.sendToAll(cohortAcceptMsg);
             } catch (Exception ex) {
                 System.out.println(ex);
