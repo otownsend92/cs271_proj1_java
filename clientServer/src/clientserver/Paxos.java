@@ -352,10 +352,13 @@ public class Paxos {
             
             Log.addToTransactionLog(acceptedVal);
             leader = false;
-
-            if (acceptedVal.equals(val)) {
-                PaxosQueue.isProposing = false;
-                PaxosQueue.transactionQueue.removeElement(val);
+            
+            if ((acceptedVal.type.equals(val.type))
+                    && (acceptedVal.amount == val.amount)
+                    && (acceptedVal.logPosition == val.logPosition)) {
+                System.out.println("FH:LAHKL:SDL:ASJLKDAJLSKDJALS:DKLSD");
+                ClientServer.paxosQueueObj.isProposing = false;
+                ClientServer.paxosQueueObj.transactionQueue.removeElementAt(0);
             }
             // reset for next iteration
             numFinalA = 0;

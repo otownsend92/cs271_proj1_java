@@ -27,13 +27,15 @@ public class PaxosQueue {
 
         // if there are items in the queue and if Paxos isn't currently proposing a value, then propose value
         if ((!transactionQueue.isEmpty()) && (!isProposing)) {
-            String[] newTrans = transactionQueue.get(0);
-            System.out.println(Arrays.toString(newTrans));
-            try {
-                ClientServer.paxosObject.prepareMsg(newTrans);
-                isProposing = true;                
-            } catch (Exception ex) {
-                System.out.println("queueWatcher:" + ex);
+            if(!transactionQueue.isEmpty()) {
+                String[] newTrans = transactionQueue.firstElement();
+                System.out.println(Arrays.toString(newTrans));
+                try {
+                    ClientServer.paxosObject.prepareMsg(newTrans);
+                    isProposing = true;                
+                } catch (Exception ex) {
+                    System.out.println("queueWatcher:" + ex);
+                }
             }
         }
     }
