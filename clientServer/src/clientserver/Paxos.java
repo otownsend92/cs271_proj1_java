@@ -307,7 +307,7 @@ public class Paxos {
         ClientServer.heardFrom++;
         System.out.println("heardfrom: " + ClientServer.heardFrom);
         System.out.println("numproc: " + HeartBeat.numProc);
-        if (ClientServer.heardFrom == HeartBeat.numProc) {
+        if (ClientServer.heardFrom == HeartBeat.numProc-ClientServer.ctrlc) {
             System.out.println("About to enter reqlog");
             ClientServer.requestLog();
             ClientServer.heardFrom = 0;
@@ -316,4 +316,5 @@ public class Paxos {
 
         // also need to prevent user from sending messages?
     }
+
 }

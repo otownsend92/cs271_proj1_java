@@ -17,6 +17,7 @@ public class ClientServer implements Runnable {
     public static PaxosQueue paxosQueueObj = new PaxosQueue();
     public static Log logObject = new Log();
 
+    public static int ctrlc = 0;
     public static int isFail = 0;
     public static int serverId;
     public static int heardFrom = 0;
@@ -52,7 +53,6 @@ public class ClientServer implements Runnable {
     public static void main(String[] args) throws Exception {
 
         System.out.println("~~~~~~~~~~~~~~~~~~~" + " CS271 Paxos " + "~~~~~~~~~~~~~~~~~~~");
-        // Check for log file
         String inputLine = null;
         InputStreamReader isr = new InputStreamReader(System.in);
         BufferedReader br = new BufferedReader(isr);
@@ -81,7 +81,7 @@ public class ClientServer implements Runnable {
 
                     } else {
                         try {
-                            if(welcomeSocket.isClosed()) {
+                            if (welcomeSocket.isClosed()) {
                                 welcomeSocket = new ServerSocket(serverPorts[serverId]);
                             }
                             Socket connectionSocket = new Socket();
@@ -103,7 +103,6 @@ public class ClientServer implements Runnable {
         // log port thread stuff
         logThread = new Thread() {
             public void run() {
-                System.out.println("Waiting for log...");
                 try {
                     // init log ONLY once
                     logSocket = new ServerSocket(logPort);
@@ -186,7 +185,20 @@ public class ClientServer implements Runnable {
         queueWatchdogThread.start();
         // Start the log thread
         logThread.start();
-
+             
+        // Check for log file
+        File f = new File(Log.path);
+        if(f.exists() && !f.isDirectory()) {
+            sleep(3000);
+            // if a log file is there
+            ctrlc = 1;
+            System.out.println("Rebuilding from CTRL C failure...");
+            int size = Log.transactionLog.size();
+            System.out.println("local size of log: " + size);
+            String poll = "sizepoll " +serverId;
+            sendPollToAll(poll);
+        }
+        
         // Start main thread for input
         while (true) {
             System.out.print("> ");
@@ -245,12 +257,11 @@ public class ClientServer implements Runnable {
                 unfail();
             } else if (input[0].equals("print")) {
                 logObject.printLog();
-            } else if(input[0].equals("heartbeat")) {
+            } else if (input[0].equals("heartbeat")) {
                 System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
-            } else if(input[0].equals("printq")) {
+            } else if (input[0].equals("printq")) {
                 PaxosQueue.printQ();
-            }
-            // added simply for testing 
+            } // added simply for testing 
             else if (input[0].equals("send")) {
                 // send message input[1] to server at port input[2]
                 String server = input[2].substring(1, input[2].length() - 1);
@@ -295,7 +306,7 @@ public class ClientServer implements Runnable {
         listenerTrue = true;
         // get size from local log
         int size = Log.transactionLog.size();
-        System.out.println("local size of log: "+size);
+        System.out.println("local size of log: " + size);
         // poll others for largest size
         String pollMsg = "sizepoll " + serverId;
         sendPollToAll(pollMsg);
@@ -308,7 +319,6 @@ public class ClientServer implements Runnable {
         String serverName = serverIPs[server_id];
 
 //        System.out.println("Sending " + m + " to: " + serverName + " on port: " + p);
-
         Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -333,12 +343,13 @@ public class ClientServer implements Runnable {
             }
         }
     }
-    
+
     public static void sendPollToAll(String prepareMsg) throws Exception {
 
         for (int i = 0; i < 5; ++i) {
             if (HeartBeat.lifeTable[i] == 1) {
-                if(i == serverId) {} else {
+                if (i == serverId) {
+                } else {
 //                    System.out.println("Heartbeat at: " + i);
 //                    System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
                     int p = serverPorts[i];
@@ -357,12 +368,12 @@ public class ClientServer implements Runnable {
         int chosenServer = serverId;
         System.out.println(Arrays.toString(logSizes));
         for (int i = 0; i < logSizes.length; i++) {
-            if (logSizes[i] > logSizes[serverId] ) { //Log.transactionLog.size()) {
+            if (logSizes[i] > logSizes[serverId]) { //Log.transactionLog.size()) {
                 chosenServer = i;
             }
         }
         if (chosenServer != serverId) {
-            System.out.println("Requesting from: "+ chosenServer);
+            System.out.println("Requesting from: " + chosenServer);
             // request log from other server
             String requestLog = "requestlog " + serverId;
             sendTo(requestLog, Integer.toString(chosenServer));

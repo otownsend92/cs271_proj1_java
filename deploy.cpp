@@ -42,10 +42,17 @@ int main(void) {
 
     // scp -r -i ~/Desktop/turtlebeards.pem ~/Dropbox/Current\ Documents/cs271/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@54.174.167.183:/home/ec2-user/
     for(int i = 0; i < 5; i++) {
+        cout << "> DEPLOYING FILES TO REMOTE HOST" << endl;
         string cmd = "scp -r -i ~/Desktop/turtlebeards.pem ~/Dropbox/Current\\ Documents/cs271/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@"+address[i]+":/home/ec2-user/";
         cout.write(cmd.c_str(), strlen(cmd.c_str()));
         cout.put('\n');
         string result = exec(cmd.c_str());
+
+        cout << "> DELETING LOGS" << endl;
+        cmd = "ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@"+address[i]+" 'rm log.txt'";
+        cout.write(cmd.c_str(), strlen(cmd.c_str()));
+        cout.put('\n');
+        result = exec(cmd.c_str());
         // sleep(1);
     }
 

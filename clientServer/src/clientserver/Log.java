@@ -123,6 +123,6 @@ public class Log {
         //write to log at once
         writeToFile(block);
         append_to_file = true;
+        ClientServer.ctrlc = 0;
     }
-
 }
