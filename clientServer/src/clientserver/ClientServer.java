@@ -15,6 +15,7 @@ public class ClientServer implements Runnable {
     public static Log logObject = new Log();
 
     public static int serverId;
+    public static int heardFrom = 0;
     public static double balance = 0.0;
     public static String[] serverIPs = {
         "54.174.167.183", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.167.183  
@@ -30,6 +31,8 @@ public class ClientServer implements Runnable {
 //        "ec2-54-174-164-18.compute-1.amazonaws.com"
 //    };
     public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
+    public static int[] logSizes = {0,0,0,0,0};
+    public static int logPort = 1210;
 
     static boolean listenerTrue = true;
 
@@ -238,17 +241,18 @@ public class ClientServer implements Runnable {
         listenerTrue = false;
     }
 
-    public static void unfail() {
+    public static void unfail() throws Exception {
         System.out.println("USER UNFAIL: Starting the listener thread again.");
         // begin listening again
         listenerTrue = true;
         // get size from local log
+        int size = Log.transactionLog.size();
         // poll others for largest size
-        // if local is up to date, import data
-        // else, get data from the most up to date process
-
-        // also need to prevent user from sending messages?
+        String pollMsg = "sizepoll " + serverId;
+        sendToAll(pollMsg);
     }
+    
+    
 
     // switch up ports and stuffs
     public static void sendTo(String m, String serverId) throws Exception {
@@ -260,17 +264,12 @@ public class ClientServer implements Runnable {
         System.out.println("Sending " + m + " to: " + serverName + " on port: " + p);
 
         Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
-//        System.out.println("1");
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-//        System.out.println("2");
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-//        System.out.println("3");
         outToServer.writeBytes(m);
-//        System.out.println("4");
-        //modifiedSentence = inFromServer.readLine();
-        //System.out.println("FROM SERVER: " + modifiedSentence);
         clientSocket.close();
         System.out.println("Finished sending.");
+        
     }
 
     public static void sendToAll(String prepareMsg) throws Exception {
@@ -288,5 +287,24 @@ public class ClientServer implements Runnable {
                 clientSocket.close();
             }
         }
+    }
+    
+    public static void requestLog() throws Exception {
+        
+        int chosenServer = 0;
+        for(int i = 0; i < logSizes.length; i++){
+            if(logSizes[i] > Log.transactionLog.size()){
+                chosenServer = i;
+            }
+        }
+        if(chosenServer != 0) {
+            // request log from other server
+            String requestLog = "requestlog " + serverId;
+            sendTo(requestLog, Integer.toString(chosenServer));
+        }
+        else {
+            // else rebuild from yourself
+        }
+        
     }
 }

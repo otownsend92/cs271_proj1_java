@@ -83,7 +83,7 @@ public class Paxos {
      Is called when server receives messages in ClientServer from other servers.
      Will call various other handler methods based on message.
      */
-    public void handleMsg(String msg) {
+    public void handleMsg(String msg) throws Exception {
 
         String[] message = msg.split(" ");
 
@@ -96,7 +96,14 @@ public class Paxos {
             handleAccept(message);
         } else if (message[0].equals("finalaccept")) {
             handleFinalAccept(message);
+        } else if (message[0].equals("sizepoll")) {
+            handleSizeRequest(message);
+        } else if (message[0].equals("requestlog")) {
+            Log.sendLog(message[1]);
+        } else if (message[0].equals("mysize")) {
+            handleSizeResponse(message);
         } 
+
     }
 
     /*
@@ -367,5 +374,32 @@ public class Paxos {
             minBallotNumServerId = 0;
             System.out.println("Decided on: " + acceptedVal.amount);
         }
+    }
+    
+    public static void handleSizeRequest(String [] request) throws Exception {
+        // send size of local log back to server with attached ID
+        int size = Log.transactionLog.size();
+        String sizeResponse = "mysize " + size + " " + ClientServer.serverId;
+        ClientServer.sendTo(sizeResponse, request[1]);
+    }
+    
+    public static void handleSizeResponse(String [] response) throws Exception {
+        
+        // if local is up to date, import data
+        int size = Integer.parseInt(response[1]);
+        int server = Integer.parseInt(response[2]);
+        ClientServer.logSizes[server] = size;
+
+        ClientServer.heardFrom++;
+        if(ClientServer.heardFrom == HeartBeat.numProc) {
+            ClientServer.requestLog();
+        }
+        // else, get data from the most up to date process
+        
+        
+        // also need to prevent user from sending messages?
+        
+        
+        ClientServer.heardFrom = 0;
     }
 }
