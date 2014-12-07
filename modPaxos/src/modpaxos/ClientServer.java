@@ -259,9 +259,9 @@ public class ClientServer implements Runnable {
                 logObject.printLog();
             } else if (input[0].equals("heartbeat")) {
                 System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
-            } else if (input[0].equals("printq")) {
-                PaxosQueue.printQ();
-            } // added simply for testing 
+                System.out.println("Leader is: "+HeartBeat.leaderId);
+            } 
+            // added simply for testing 
             else if (input[0].equals("send")) {
                 // send message input[1] to server at port input[2]
                 String server = input[2].substring(1, input[2].length() - 1);
