@@ -5,7 +5,6 @@ package modpaxos;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Arrays;
 
 public class HeartBeat {
 
@@ -54,7 +53,6 @@ public class HeartBeat {
                 alive++;
             }
         }
-
         numProc = alive;
 //        System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
     }

@@ -160,8 +160,8 @@ public class ClientServer implements Runnable {
 //                        System.out.println("Entering heartbeat thread...");
                         HeartBeat.pingAll(); // this should update the "numProc" int in HeartBeat.java
 
-                        // wait 3s
-                        sleep(3000);
+                        // wait 1s
+                        sleep(1000);
                         HeartBeat.countAliveServers();
                     } catch (IOException | InterruptedException ex) {
 //                        System.out.println(ex);
@@ -195,7 +195,7 @@ public class ClientServer implements Runnable {
         // Check for log file
 //        File f = new File(Log.path);
 //        if (f.exists() && !f.isDirectory()) {
-            sleep(3000);
+            sleep(2000);
             // if a log file is there
             ctrlc = 1;
             System.out.println("Rebuilding from CTRL C failure/Starting up...");

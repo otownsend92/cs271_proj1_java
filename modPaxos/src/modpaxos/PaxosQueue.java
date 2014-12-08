@@ -7,8 +7,6 @@ package modpaxos;
 
 import java.util.Arrays;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -27,7 +25,6 @@ public class PaxosQueue {
         for (int i = 0; i < transactionQueue.size(); ++i) {
             String[] val = transactionQueue.elementAt(i);
             System.out.println("Queue " + i + ": " + Arrays.toString(val));
-
         }
     }
 
@@ -49,6 +46,8 @@ public class PaxosQueue {
                     System.out.println("queueWatcher:" + ex);
                 }
             }
+            
+        // if leader
         } else if ((!transactionQueue.isEmpty()) && (!isProposing) && (HeartBeat.leaderId == ClientServer.serverId)) {
             if (!transactionQueue.isEmpty()) {
                 String trans[] = transactionQueue.firstElement();
