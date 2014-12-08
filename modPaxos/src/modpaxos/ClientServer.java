@@ -52,7 +52,7 @@ public class ClientServer implements Runnable {
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println("~~~~~~~~~~~~~~~~~~~" + " CS271 Paxos " + "~~~~~~~~~~~~~~~~~~~");
+        System.out.println("~~~~~~~~~~~~~~~~~~~" + " CS271 Modified Paxos " + "~~~~~~~~~~~~~~~~~~~");
         String inputLine = null;
         InputStreamReader isr = new InputStreamReader(System.in);
         BufferedReader br = new BufferedReader(isr);
