@@ -161,7 +161,10 @@ public class Paxos {
 
     public static void handleCohort(String[] message) {
         if (ClientServer.serverId == HeartBeat.leaderId) {
-            PaxosQueue.transactionQueue.add(message);
+            String s = message[1] + " "+ message[2];
+            String []d = s.split(" ");
+            System.out.println("trans from cohort: "+Arrays.toString(d));
+            PaxosQueue.transactionQueue.add(d);
             System.out.println("Handle cohort");
         }
     }

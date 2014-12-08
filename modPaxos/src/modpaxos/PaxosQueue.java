@@ -52,15 +52,15 @@ public class PaxosQueue {
         } else if ((!transactionQueue.isEmpty()) && (!isProposing) && (HeartBeat.leaderId == ClientServer.serverId)) {
             if (!transactionQueue.isEmpty()) {
                 String trans[] = transactionQueue.firstElement();
-                System.out.println(Arrays.toString(trans));
+                System.out.println("TRANS: "+Arrays.toString(trans));
                 String winMsg = "accept "
-                        + trans[1] + " "
-                        + trans[2];
+                        + trans[0] + " "
+                        + trans[1];
                 try {
                     isProposing = true;
                     ClientServer.sendToAll(winMsg);
                 } catch (Exception ex) {
-                    System.out.println(ex);
+                    System.out.println("senttoall: "+ex);
                 }
             }
         }

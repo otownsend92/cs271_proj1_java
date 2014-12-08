@@ -187,17 +187,17 @@ public class ClientServer implements Runnable {
         logThread.start();
              
         // Check for log file
-        File f = new File(Log.path);
-        if(f.exists() && !f.isDirectory()) {
+//        File f = new File(Log.path);
+//        if(f.exists() && !f.isDirectory()) {
             sleep(3000);
             // if a log file is there
             ctrlc = 1;
-            System.out.println("Rebuilding from CTRL C failure...");
+            System.out.println("Rebuilding from CTRL C failure/Starting up...");
             int size = Log.transactionLog.size();
             System.out.println("local size of log: " + size);
             String poll = "sizepoll " +serverId;
             sendPollToAll(poll);
-        }
+//        }
         
         // Start main thread for input
         while (true) {
