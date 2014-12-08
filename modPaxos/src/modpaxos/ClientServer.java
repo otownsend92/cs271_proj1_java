@@ -23,11 +23,17 @@ public class ClientServer implements Runnable {
     public static int heardFrom = 0;
     public static double balance = 0.0;
     public static String[] serverIPs = {
-        "54.174.167.183", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.167.183  
-        "54.174.226.59", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.226.59 
-        "54.86.223.159", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.86.223.159 
-        "54.174.201.123", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.201.123 
-        "54.174.164.18"}; //ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.164.18 
+        "54.174.167.183", // ssh -i /Users/olivertownsend/Desktop/turtlebeards.pem ec2-user@54.174.167.183  
+        "54.67.65.3", // ssh -i /Users/olivertownsend/Desktop/turtlebeards_california.pem ec2-user@54.67.65.3 
+        "54.76.142.156", // ssh -i /Users/olivertownsend/Desktop/turtlebeards_ireland.pem ec2-user@54.76.142.156 
+        "54.169.150.46", // ssh -i /Users/olivertownsend/Desktop/turtlebeards_singapore.pem ec2-user@54.169.150.46 
+        "54.94.187.28"}; //ssh -i /Users/olivertownsend/Desktop/turtlebeards_saopaulo.pem ec2-user@54.94.187.28
+//    public static String[] serverIPs = {
+//        "54.174.167.183", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.167.183  
+//        "54.174.226.59", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.226.59 
+//        "54.86.223.159", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.86.223.159 
+//        "54.174.201.123", // ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.201.123 
+//        "54.174.164.18"}; //ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@54.174.164.18 
 //    public static String[] serverIpPrivate = {
 //        "ec2-54-174-167-183.compute-1.amazonaws.com",
 //        "ec2-54-174-226-59.compute-1.amazonaws.com",

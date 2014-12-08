@@ -24,7 +24,7 @@ public class HeartBeat {
             try {
                 socket.connect(new InetSocketAddress(serverIP, serverPort), 1000); //timeout 1000ms
                 lifeTable[i] = 1;
-                leaderId = i;
+//                leaderId = i;
                 socket.close();
                 alive++;
             } catch (Exception ex) {
@@ -33,6 +33,15 @@ public class HeartBeat {
                 lifeTable[i] = 0;
             }
         }
+        // [0,1,1,1,0]
+        if(lifeTable[leaderId] == 0 || leaderId != 4){
+            int i = 4;
+            while(lifeTable[i] == 0){
+                i--;
+            }
+            leaderId = i;
+        }
+        
         numProc = alive;
 //        System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
     }
