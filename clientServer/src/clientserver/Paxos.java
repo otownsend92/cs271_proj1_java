@@ -29,7 +29,12 @@ public class Paxos {
     Value acceptedVal = new Value();
     // what leader sends out in accept() message
     Value myVal = new Value();
+    // monitor highest val received that's not blank
+    Value highestVal = new Value();
+    // never initialize
+    Value blankVal = new Value();
     // counter for final accepts
+
     int numFinalA = 0;
     public static Vector<Value> ackedValues = new Vector();
     public static int[] ackedValBals;
@@ -52,10 +57,9 @@ public class Paxos {
         //String[] message = msg.split(" ");
         val.type = message[0];
         val.amount = Double.parseDouble(message[1]);
-
-//        System.out.println("PREPAREMSG logsize: " + Log.transactionLog.size());
-        // Need to get postion from log
         val.logPosition = Log.transactionLog.size();
+        val.balNum = generateNum;
+        val.balNumServerId = ClientServer.serverId;
 
         String prepareMsg = "prepare " + generateNum + " " + ClientServer.serverId;
         try {
@@ -90,8 +94,8 @@ public class Paxos {
         if (message[0].equals("prepare")) {
             handlePrepare(message);
         } else if (message[0].equals("ack")) {
-            handleAck(message);
-//            handleAckNew(message);
+//            handleAck(message);
+            handleAckNew(message);
         } else if (message[0].equals("accept")) {
             handleAccept(message);
         } else if (message[0].equals("finalaccept")) {
@@ -120,6 +124,7 @@ public class Paxos {
             minBallotNum = ballotNum;
             minBallotNumServerId = ballotNumServerId;
             System.out.println("IFSTATEMENT");
+
             /*
              TODO:
              If have already accepted proposal - set reply Value value to this val,
@@ -129,8 +134,10 @@ public class Paxos {
         }
         String reply
                 = "ack "
-                + minBallotNum + " "
-                + minBallotNumServerId + " "
+                + ballotNum + " "
+                + ballotNumServerId + " "
+                + acceptedVal.balNum + " "
+                + acceptedVal.balNumServerId + " "
                 + acceptedVal.type + " "
                 + acceptedVal.amount + " "
                 + acceptedVal.logPosition;
@@ -140,6 +147,121 @@ public class Paxos {
         } catch (Exception ex) {
             System.out.println(ex);
         }
+    }
+
+    public void handleAckNew(String[] message) {
+
+        int receivedBalNum = Integer.parseInt(message[3]);
+        int receivedBalNumServerId = Integer.parseInt(message[4]);
+
+        int ourReceivedBalNum = Integer.parseInt(message[1]);
+        int ourReceivedBalNumServerId = Integer.parseInt(message[2]);
+
+        if (ourReceivedBalNum == generateNum && ourReceivedBalNumServerId == ClientServer.serverId) {
+            Value receivedVal = new Value();
+            receivedVal.type = message[5];
+            receivedVal.amount = Double.parseDouble(message[6]);
+            receivedVal.logPosition = Integer.parseInt(message[7]);
+            receivedVal.balNum = receivedBalNum;
+            receivedVal.balNumServerId = receivedBalNumServerId;
+
+            ackCount++;
+            double majority = (double) ackCount / (HeartBeat.numProc);
+
+            System.out.println("Received ack # " + ackCount + " from: " + receivedBalNum + " " + receivedBalNumServerId);
+
+            // if someone has already accepted a value this round
+            if (!receivedVal.type.equals("blank")) {
+
+                System.out.println("Not blank! Already accepted value");
+                // if this received not-blank value is higher than previous not-blank value in this round, reset highest
+                if ((receivedVal.balNum > highestVal.balNum) || ((receivedVal.balNum == highestVal.balNum) && (receivedVal.balNumServerId > highestVal.balNumServerId))) {
+                    highestVal = receivedVal;
+                }
+            }
+
+//        System.out.println("highestVal.type: " + highestVal.type);
+//        System.out.println("blankVal.type: " + blankVal.type);
+//        System.out.println("highestVal.amount: " + highestVal.amount);
+//        System.out.println("blankVal.amount: " + blankVal.amount);
+//        System.out.println("highestVal.logPosition: " + highestVal.logPosition);
+//        System.out.println("blankVal.logPosition: " + blankVal.logPosition);
+//        System.out.println("highestVal.balNum: " + highestVal.balNum);
+//        System.out.println("blankVal.balNum: " + blankVal.balNum);
+//        System.out.println("highestVal.balNumServerId: " + highestVal.balNumServerId);
+//        System.out.println("blankVal.balNumServerId: " + blankVal.balNumServerId);
+            if ((majority > 0.5) && (HeartBeat.numProc >= 3)) {
+                if (phase2) {
+
+                } else {
+                    System.out.println("majority: " + majority);
+                    System.out.println("Have reached majority");
+
+                    // stop handling acks
+                    phase2 = true;
+
+                // if there was an already accepted value, propose it
+                    // lost this round
+                    if (!valsAreEqual(highestVal, blankVal)) {
+
+                        String concedeMsg = "accept "
+                                + generateNum + " "
+                                + ClientServer.serverId + " "
+                                + highestVal.type + " "
+                                + highestVal.amount + " "
+                                + highestVal.logPosition;
+
+                        try {
+                            // Accept the higher ballot
+                            System.out.println("Sending concede accept");
+                            ClientServer.sendToAll(concedeMsg);
+                            ackCount = 0;
+                            // Try to prepare another proposal
+                            generateNum = receivedBalNum + 1;
+                            regeneratePrepare();
+                        } catch (Exception ex) {
+                            System.out.println(ex);
+                        }
+                    } else if (valsAreEqual(highestVal, blankVal)) {  // won this round
+
+                        System.out.println("Sending we won");
+                        String winMsg = "accept "
+                                + generateNum + " "
+                                + ClientServer.serverId + " "
+                                + val.type + " "
+                                + val.amount + " "
+                                + val.logPosition;
+                        try {
+                            // I won
+                            System.out.println("We have a consensus, broadcasting out the accept");
+                            ClientServer.sendToAll(winMsg);
+                        } catch (Exception ex) {
+                            System.out.println(ex);
+                        }
+                        ackCount = 0;
+                    }
+
+                    resetHighestVal();
+
+                }
+            } else if (HeartBeat.numProc < 3) {
+                System.out.println("Cannot reach majority, not enough servers.");
+            }
+        }
+
+    }
+
+    public boolean valsAreEqual(Value a, Value b) {
+
+        return (a.type.equals(b.type)
+                && a.amount == b.amount
+                && a.balNum == b.balNum
+                && a.balNumServerId == b.balNumServerId
+                && a.logPosition == b.logPosition);
+    }
+
+    public void resetHighestVal() {
+        highestVal = blankVal;
     }
 
     /*
@@ -179,6 +301,7 @@ public class Paxos {
                 ClientServer.sendToAll(concedeMsg);
                 leader = false;
                 // Try to prepare another proposal
+                ackCount = 0;
                 generateNum = receivedBalNum + 1;
                 regeneratePrepare();
             } catch (Exception ex) {
@@ -236,11 +359,13 @@ public class Paxos {
         int receivedBalNumServerId = Integer.parseInt(message[2]);
 
         // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
-        if ((receivedBalNum >= generateNum)
-                || ((receivedBalNum == generateNum) && (receivedBalNumServerId >= ClientServer.serverId))) {
+        if ((receivedBalNum >= minBallotNum)
+                || ((receivedBalNum == minBallotNum) && (receivedBalNumServerId >= minBallotNumServerId))) {
             acceptedVal.type = message[3];
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
+            acceptedVal.balNum = receivedBalNum;
+            acceptedVal.balNumServerId = receivedBalNumServerId;
 
             String cohortAcceptMsg = "finalaccept "
                     + receivedBalNum + " "
@@ -281,9 +406,8 @@ public class Paxos {
             // reset for next iteration
             numFinalA = 0;
             phase2 = false;
-            minBallotNum = 0;
-            minBallotNumServerId = 0;
             System.out.println("Decided on: " + acceptedVal.amount);
+            acceptedVal = blankVal;
         }
     }
 
@@ -307,7 +431,7 @@ public class Paxos {
         ClientServer.heardFrom++;
         System.out.println("heardfrom: " + ClientServer.heardFrom);
         System.out.println("numproc: " + HeartBeat.numProc);
-        if (ClientServer.heardFrom == HeartBeat.numProc-ClientServer.ctrlc) {
+        if (ClientServer.heardFrom == HeartBeat.numProc - ClientServer.ctrlc) {
             System.out.println("About to enter reqlog");
             ClientServer.requestLog();
             ClientServer.heardFrom = 0;
