@@ -34,20 +34,68 @@ int main(void) {
   // init addrs                                                                                                                                                                                    
   static const string address[] = {
     "54.174.167.183",
-    "54.174.226.59",
-    "54.86.223.159",
-    "54.174.201.123",
-        "54.174.164.18"
+    "54.67.65.3",
+    "54.76.142.156",
+    "54.169.150.46",
+        "54.94.187.28"
   };
 
   // scp -r -i ~/Desktop/turtlebeards.pem ~/Dropbox/Current\ Documents/cs271/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@54.174.167.183:/home/ec2-user/                           
-  for(int i = 0; i < 5; i++) {
-    string cmd = "scp -r -i ~/Desktop/turtlebeards.pem /Users/olivertownsend/NetBeansProjects/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@"+address[i]+":/home/ec2-user/";
+  //for(int i = 0; i < 5; i++) {
+    string cmd = "scp -r -i ~/Desktop/turtlebeards.pem /Users/olivertownsend/NetBeansProjects/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@"+address[0]+":/home/ec2-user/";
     cout.write(cmd.c_str(), strlen(cmd.c_str()));
     cout.put('\n');
     string result = exec(cmd.c_str());
+    cout << "> DELETING LOGS" << endl;
+    cmd = "ssh -i /Users/olivertownsend/Desktop/turtlebeards.pem ec2-user@"+address[0]+" 'rm log.txt'";
+    cout.write(cmd.c_str(), strlen(cmd.c_str()));
+    cout.put('\n');
+    result = exec(cmd.c_str());
+    
+    cmd = "scp -r -i ~/Desktop/turtlebeards_california.pem /Users/olivertownsend/NetBeansProjects/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@"+address[1]+":/home/ec2-user/";
+    cout.write(cmd.c_str(), strlen(cmd.c_str()));
+    cout.put('\n');
+    result = exec(cmd.c_str());
+    cout << "> DELETING LOGS" << endl;
+    cmd = "ssh -i /Users/olivertownsend/Desktop/turtlebeards_california.pem ec2-user@"+address[1]+" 'rm log.txt'";
+    cout.write(cmd.c_str(), strlen(cmd.c_str()));
+    cout.put('\n');
+    result = exec(cmd.c_str());
+    
+    cmd = "scp -r -i ~/Desktop/turtlebeards_ireland.pem /Users/olivertownsend/NetBeansProjects/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@"+address[2]+":/home/ec2-user/";
+    cout.write(cmd.c_str(), strlen(cmd.c_str()));
+    cout.put('\n');
+    result = exec(cmd.c_str());
+    cout << "> DELETING LOGS" << endl;
+    cmd = "ssh -i /Users/olivertownsend/Desktop/turtlebeards_ireland.pem ec2-user@"+address[2]+" 'rm log.txt'";
+    cout.write(cmd.c_str(), strlen(cmd.c_str()));
+    cout.put('\n');
+    result = exec(cmd.c_str());
+    
+    cmd = "scp -r -i ~/Desktop/turtlebeards_singapore.pem /Users/olivertownsend/NetBeansProjects/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@"+address[3]+":/home/ec2-user/";
+    cout.write(cmd.c_str(), strlen(cmd.c_str()));
+    cout.put('\n');
+    result = exec(cmd.c_str());
+    cout << "> DELETING LOGS" << endl;
+    cmd = "ssh -i /Users/olivertownsend/Desktop/turtlebeards_singapore.pem ec2-user@"+address[3]+" 'rm log.txt'";
+    cout.write(cmd.c_str(), strlen(cmd.c_str()));
+    cout.put('\n');
+    result = exec(cmd.c_str());
+    
+    cmd = "scp -r -i ~/Desktop/turtlebeards_saopaulo.pem /Users/olivertownsend/NetBeansProjects/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@"+address[4]+":/home/ec2-user/";
+    cout.write(cmd.c_str(), strlen(cmd.c_str()));
+    cout.put('\n');
+    result = exec(cmd.c_str());
+    cout << "> DELETING LOGS" << endl;
+    cmd = "ssh -i /Users/olivertownsend/Desktop/turtlebeards_saopaulo.pem ec2-user@"+address[4]+" 'rm log.txt'";
+    cout.write(cmd.c_str(), strlen(cmd.c_str()));
+    cout.put('\n');
+    result = exec(cmd.c_str());
+      
+      
     // sleep(1);                                                                                                                                                                                 
-  }
+  //}
+    
 
   exit(EXIT_SUCCESS);
 }
