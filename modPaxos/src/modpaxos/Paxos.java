@@ -42,32 +42,6 @@ public class Paxos {
 
     /*
      LEADER'S PERSPECTIVE
-     Receives 'msg' from ClientServer and uses it to generate a Value object val
-     to be proposed to all other servers.
-     */
-    public void prepareMsg(String[] message) {
-
-        generateNum++;
-        leader = true;
-        //String[] message = msg.split(" ");
-        val.type = message[0];
-        val.amount = Double.parseDouble(message[1]);
-
-//        System.out.println("PREPAREMSG logsize: " + Log.transactionLog.size());
-        // Need to get postion from log
-        val.logPosition = Log.transactionLog.size();
-
-        String prepareMsg = "prepare " + generateNum + " " + ClientServer.serverId;
-        try {
-            System.out.println("Sending prepareMsg");
-            ClientServer.sendToAll(prepareMsg);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    /*
-     LEADER'S PERSPECTIVE
      Called when leader loses election. Will generate a new proposal number (prepareMsg)
      and use the same Value object val in a new round of prepares.
      */
@@ -130,28 +104,27 @@ public class Paxos {
     public void handleFinalAccept(String[] message) {
         // We're done if we get this step (if we get final accepts from ALL servers), save the final value
         numFinalA++;
+        System.out.println("numfinala: "+numFinalA+"numproc: "+ HeartBeat.numProc);
         if (numFinalA == HeartBeat.numProc) {
+            numFinalA= 0;
             acceptedVal.type = message[1];
             acceptedVal.amount = Double.parseDouble(message[2]);
 
             Log.addToTransactionLog(acceptedVal);
-            leader = false;
+//            leader = false;
 
-            if ((acceptedVal.type.equals(val.type))
-                    && (acceptedVal.amount == val.amount)
-                    ) {
-                System.out.println("FH:LAHKL:SDL:ASJLKDAJLSKDJALS:DKLSD");
-                PaxosQueue.printQ();
-                ClientServer.paxosQueueObj.isProposing = false;
-                if (HeartBeat.leaderId == ClientServer.serverId) {
-                    ClientServer.paxosQueueObj.transactionQueue.removeElementAt(0);
-                }
+            System.out.println("FH:LAHKL:SDL:ASJLKDAJLSKDJALS:DKLSD");
+            PaxosQueue.printQ();
+            ClientServer.paxosQueueObj.isProposing = false;
+            if (HeartBeat.leaderId == ClientServer.serverId) {
+                ClientServer.paxosQueueObj.transactionQueue.removeElementAt(0);
             }
+
             // reset for next iteration
-            numFinalA = 0;
-            phase2 = false;
-            minBallotNum = 0;
-            minBallotNumServerId = 0;
+//            numFinalA = 0;
+//            phase2 = false;
+//            minBallotNum = 0;
+//            minBallotNumServerId = 0;
             System.out.println("Decided on: " + acceptedVal.amount);
         }
     }
@@ -187,8 +160,10 @@ public class Paxos {
     }
 
     public static void handleCohort(String[] message) {
-        PaxosQueue.transactionQueue.add(message);
-        System.out.println("Handle cohort");
+        if (ClientServer.serverId == HeartBeat.leaderId) {
+            PaxosQueue.transactionQueue.add(message);
+            System.out.println("Handle cohort");
+        }
     }
 
 }

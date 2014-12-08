@@ -43,9 +43,8 @@ public class PaxosQueue {
                 try {
                     String cohortProposal = "cohort " + newTrans[0] + " " + newTrans[1];
                     ClientServer.sendTo(cohortProposal, Integer.toString(HeartBeat.leaderId));
+                    transactionQueue.remove(0);
 //                    ClientServer.paxosObject.prepareMsg(newTrans);
-
-                    isProposing = true;
                 } catch (Exception ex) {
                     System.out.println("queueWatcher:" + ex);
                 }
@@ -55,9 +54,10 @@ public class PaxosQueue {
                 String trans[] = transactionQueue.firstElement();
                 System.out.println(Arrays.toString(trans));
                 String winMsg = "accept "
-                        + trans[0] + " "
-                        + trans[1];
+                        + trans[1] + " "
+                        + trans[2];
                 try {
+                    isProposing = true;
                     ClientServer.sendToAll(winMsg);
                 } catch (Exception ex) {
                     System.out.println(ex);

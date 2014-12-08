@@ -78,7 +78,8 @@ public class Log {
     public static void printLog() {
         for (int i = 0; i < transactionLog.size(); ++i) {
             String val = transactionLog.elementAt(i);
-            System.out.println("Log " + i + ": " + val);
+            String []split = val.split(" ");
+            System.out.println("Log " + i + ": " + split[0] + " "+split[1]);
 
         }
     }
