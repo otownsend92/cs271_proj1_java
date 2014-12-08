@@ -33,23 +33,31 @@ int main(void) {
             
     // init addrs
     static const string address[] = {
-        "54.174.167.183", 
-        "54.174.226.59", 
-        "54.86.223.159", 
-        "54.174.201.123", 
-        "54.174.164.18"
+        "54.174.167.183",
+        "54.67.65.3",
+        "54.76.142.156",
+        "54.169.150.46",
+        "54.94.187.28"
+    };
+    
+    static const string cert[] = {
+        "turtlebeards.pem",
+        "turtlebeards_california.pem",
+        "turtlebeards_ireland.pem",
+        "turtlebeards_singapore.pem",
+        "turtlebeards_saopaulo.pem"
     };
 
     // scp -r -i ~/Desktop/turtlebeards.pem ~/Dropbox/Current\ Documents/cs271/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@54.174.167.183:/home/ec2-user/
     for(int i = 0; i < 5; i++) {
         cout << "> DEPLOYING FILES TO REMOTE HOST" << endl;
-        string cmd = "scp -r -i ~/Desktop/turtlebeards.pem ~/Dropbox/Current\\ Documents/cs271/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@"+address[i]+":/home/ec2-user/";
+        string cmd = "scp -r -i ~/Desktop/"+ cert[i] +" ~/Dropbox/Current\\ Documents/cs271/cs271_proj1_java/clientServer/dist/clientServer.jar ec2-user@"+address[i]+":/home/ec2-user/";
         cout.write(cmd.c_str(), strlen(cmd.c_str()));
         cout.put('\n');
         string result = exec(cmd.c_str());
 
         cout << "> DELETING LOGS" << endl;
-        cmd = "ssh -i /Users/wdai/Desktop/turtlebeards.pem ec2-user@"+address[i]+" 'rm log.txt'";
+        cmd = "ssh -i /Users/wdai/Desktop/"+ cert[i] +" ec2-user@"+address[i]+" 'rm log.txt'";
         cout.write(cmd.c_str(), strlen(cmd.c_str()));
         cout.put('\n');
         result = exec(cmd.c_str());
