@@ -215,10 +215,14 @@ public class ClientServer implements Runnable {
                 if (HeartBeat.numProc < 3) {
                     System.out.println("Not enough servers");
                 } else {
-                    double amount;
                     try {
+                        
                         input[1] = (input[1].substring(1, input[1].length() - 1));
                         System.out.println("Depositing: " + input[1]);
+                        
+                        // Add to log immediately
+                        Log.transactionLog.add("deposit "+input[1]+" "+Log.transactionLog.size());
+                        
                         // Adding to queue
                         paxosQueueObj.transactionQueue.add(input);
                         for (int i = 0; i < paxosQueueObj.transactionQueue.size(); i++) {
