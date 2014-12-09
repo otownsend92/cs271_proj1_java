@@ -14,11 +14,12 @@ import java.util.logging.Logger;
 
 public class Log {
 
-    public static Vector<String> transactionLog = new Vector();
+    public static Vector<String> transactionLog = new Vector(200);
 
     public static double balance;
     static String path = "./log.txt";
     static boolean append_to_file = true;
+    public static int currIndex = 0;
 
     public static void writeToFile(String textLine) throws IOException {
         FileWriter write;
@@ -38,7 +39,12 @@ public class Log {
 //        val.amount = Double.parseDouble(message[2]);
 //        val.type = message[1];
         String entry = val.type + " " + val.amount + " " + val.logPosition;
-        transactionLog.add(entry);
+        String nullString1 = "";
+        String nullString2 = "";
+        transactionLog.add(nullString1);
+        transactionLog.add(nullString2);
+        transactionLog.add(val.logPosition, entry);
+        currIndex++;
         updateBalance(val.type, val.amount);
         try {
             writeToFile(entry);
@@ -66,10 +72,15 @@ public class Log {
     }
 
     public static void printLog() {
-        for (int i = 0; i < transactionLog.size(); ++i) {
+        System.out.println("currIndex: " + currIndex);
+        int j = 0;
+        for (int i = 0; i < currIndex; ++i) {
             String val = transactionLog.elementAt(i);
-            String []split = val.split(" ");
-            System.out.println("Log " + i + ": " + split[0] + " "+split[1]);
+            if (!val.equals("")){
+                String []split = val.split(" ");
+                System.out.println("Log " + j + ": " + split[0] + " "+split[1]);
+                j++;
+            }
 
         }
     }

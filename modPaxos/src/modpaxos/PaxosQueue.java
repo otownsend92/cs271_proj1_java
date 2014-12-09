@@ -54,7 +54,8 @@ public class PaxosQueue {
                 System.out.println("TRANS: "+Arrays.toString(trans));
                 String winMsg = "accept "
                         + trans[0] + " "
-                        + trans[1];
+                        + trans[1] + " "
+                        + Log.currIndex;
                 try {
                     isProposing = true;
                     ClientServer.sendToAll(winMsg);

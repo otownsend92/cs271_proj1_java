@@ -82,10 +82,12 @@ public class Paxos {
 
         acceptedVal.type = message[1];
         acceptedVal.amount = Double.parseDouble(message[2]);
+        acceptedVal.logPosition = Integer.parseInt(message[3]);
 
         String cohortAcceptMsg = "finalaccept "
                 + acceptedVal.type + " "
-                + acceptedVal.amount;
+                + acceptedVal.amount + " "
+                + acceptedVal.logPosition;
 
         try {
             System.out.println("Broadcasting final accept");
@@ -99,28 +101,27 @@ public class Paxos {
     public void handleFinalAccept(String[] message) {
         // We're done if we get this step (if we get final accepts from ALL servers), save the final value
         numFinalA++;
-        System.out.println("numfinala: "+numFinalA+"numproc: "+ HeartBeat.numProc);
+        System.out.println("numfinala: " + numFinalA + "numproc: " + HeartBeat.numProc);
         if (numFinalA == HeartBeat.numProc) {
-            numFinalA= 0;
+            numFinalA = 0;
             acceptedVal.type = message[1];
             acceptedVal.amount = Double.parseDouble(message[2]);
+            acceptedVal.logPosition = Integer.parseInt(message[3]);
 
-            Log.addToTransactionLog(acceptedVal);
-//            leader = false;
+            if (acceptedVal.type.equals("withdraw") && Log.balance < acceptedVal.amount) {
+                System.out.println("Insufficient funds.");
+            } else {
+                Log.addToTransactionLog(acceptedVal);
+                System.out.println("FH:LAHKL:SDL:ASJLKDAJLSKDJALS:DKLSD");
+                PaxosQueue.printQ();
+                ClientServer.paxosQueueObj.isProposing = false;
+                if (HeartBeat.leaderId == ClientServer.serverId) {
+                    ClientServer.paxosQueueObj.transactionQueue.removeElementAt(0);
+                }
 
-            System.out.println("FH:LAHKL:SDL:ASJLKDAJLSKDJALS:DKLSD");
-            PaxosQueue.printQ();
-            ClientServer.paxosQueueObj.isProposing = false;
-            if (HeartBeat.leaderId == ClientServer.serverId) {
-                ClientServer.paxosQueueObj.transactionQueue.removeElementAt(0);
+                System.out.println("Decided on: " + acceptedVal.amount);
             }
 
-            // reset for next iteration
-//            numFinalA = 0;
-//            phase2 = false;
-//            minBallotNum = 0;
-//            minBallotNumServerId = 0;
-            System.out.println("Decided on: " + acceptedVal.amount);
         }
     }
 
@@ -156,9 +157,9 @@ public class Paxos {
 
     public static void handleCohort(String[] message) {
         if (ClientServer.serverId == HeartBeat.leaderId) {
-            String s = message[1] + " "+ message[2];
-            String []d = s.split(" ");
-            System.out.println("trans from cohort: "+Arrays.toString(d));
+            String s = message[1] + " " + message[2];
+            String[] d = s.split(" ");
+            System.out.println("trans from cohort: " + Arrays.toString(d));
             PaxosQueue.transactionQueue.add(d);
             System.out.println("Handle cohort");
         }

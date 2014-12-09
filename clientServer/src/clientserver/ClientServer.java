@@ -180,7 +180,7 @@ public class ClientServer implements Runnable {
 //                    System.out.println("Starting queuewatcher thread");
                     paxosQueueObj.queueWatcher();
                     try {
-                        sleep(1000);
+                        sleep(4000);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(ClientServer.class.getName()).log(Level.SEVERE, null, ex);
                     }

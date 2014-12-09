@@ -47,7 +47,7 @@ public class Log {
 //        Paxos.Value val = null;
 //        val.amount = Double.parseDouble(message[2]);
 //        val.type = message[1];
-        String entry = val.type + " " + val.amount + " " + val.logPosition;
+        String entry = val.type + " " + val.amount;
         transactionLog.add(i, entry);
         updateBalance(val.type, val.amount);
         try {
