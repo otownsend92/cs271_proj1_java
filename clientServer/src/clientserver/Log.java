@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 
 public class Log {
 
-    public static Vector<String> transactionLog = new Vector();
+    public static Vector<String> transactionLog = new Vector(200);
 
     public static double balance;
     static String path = "./log.txt";

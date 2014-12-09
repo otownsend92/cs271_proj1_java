@@ -41,9 +41,9 @@ public class ClientServer implements Runnable {
 //        "ec2-54-174-201-123.compute-1.amazonaws.com",
 //        "ec2-54-174-164-18.compute-1.amazonaws.com"
 //    };
-    public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
+    public static int[] serverPorts = {12100, 12101, 12102, 12103, 12104};
     public static int[] logSizes = {0, 0, 0, 0, 0};
-    public static int logPort = 1210;
+    public static int logPort = 1220;
 
     static boolean listenerTrue = true;
 
@@ -196,90 +196,86 @@ public class ClientServer implements Runnable {
         queueWatchdogThread.start();
         // Start the log thread
         logThread.start();
-             
+
         // Check for log file
 //        File f = new File(Log.path);
 //        if(f.exists() && !f.isDirectory()) {
-            sleep(3000);
-            // if a log file is there
-            ctrlc = 1;
-            System.out.println("Rebuilding from CTRL C failure/Starting up...");
-            int size = Log.transactionLog.size();
-            System.out.println("local size of log: " + size);
-            String poll = "sizepoll " +serverId;
-            sendPollToAll(poll);
+        sleep(3000);
+        // if a log file is there
+        ctrlc = 1;
+        System.out.println("Rebuilding from CTRL C failure/Starting up...");
+        int size = Log.transactionLog.size();
+        System.out.println("local size of log: " + size);
+        String poll = "sizepoll " + serverId;
+        sendPollToAll(poll);
 //        }
-        
-        // Start main thread for input
-        while (true) {
-            System.out.print("> ");
-            try {
-                inputLine = br.readLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            String regex = "(?=\\()|(?<=\\)\\d)";
-            String[] input = inputLine.split(regex);
-//            System.out.println(Arrays.toString(input));
 
-            if (input[0].equals("deposit")) {
-                double amount;
+        
+
+        // Start main thread for input
+        {
+            while (true) {
+                System.out.print("> ");
                 try {
-                    input[1] = (input[1].substring(1, input[1].length() - 1));
-                    System.out.println("Depositing: " + input[1]);
-                    // Adding to queue
-                    paxosQueueObj.transactionQueue.add(input);
-                    for (int i = 0; i < paxosQueueObj.transactionQueue.size(); i++) {
-                        String[] s = paxosQueueObj.transactionQueue.elementAt(i);
-//                        System.out.println(Arrays.toString(s));
-                    }
-//                    paxosObject.prepareMsg(input);
-                } catch (Exception e) {
-                    System.out.println("Try deposit: " + e);
+                    inputLine = br.readLine();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
-            } else if (input[0].equals("withdraw")) {
-                double amount;
-                try {
-                    input[1] = (input[1].substring(1, input[1].length() - 1));
-                    if (logObject.balance < Double.parseDouble(input[1])) {
-                        // Nonsufficient funds
-                        System.out.println("Withdraw of: " + input[1] + " failed. Insufficient funds.");
-                    } else {
+                String regex = "(?=\\()|(?<=\\)\\d)";
+                String[] input = inputLine.split(regex);
+//            System.out.println(Arrays.toString(input));
+
+                if (input[0].equals("deposit")) {
+                    double amount;
+                    try {
+                        input[1] = (input[1].substring(1, input[1].length() - 1));
+                        System.out.println("Depositing: " + input[1]);
                         // Adding to queue
-                        System.out.println("Withdrawing: " + input[1]);
                         paxosQueueObj.transactionQueue.add(input);
-                        for (int i = 0; i < paxosQueueObj.transactionQueue.size(); i++) {
-                            String[] s = paxosQueueObj.transactionQueue.elementAt(i);
-//                            System.out.println(Arrays.toString(s));
-                        }
-//                        paxosObject.prepareMsg(input);
+                        
+                    } catch (Exception e) {
+                        System.out.println("Try deposit: " + e);
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    System.out.println("Invalid command.");
+                } else if (input[0].equals("withdraw")) {
+                    double amount;
+                    try {
+                        input[1] = (input[1].substring(1, input[1].length() - 1));
+                        if (logObject.balance < Double.parseDouble(input[1])) {
+                            // Nonsufficient funds
+                            System.out.println("Withdraw of: " + input[1] + " failed. Insufficient funds.");
+                        } else {
+                            // Adding to queue
+                            System.out.println("Withdrawing: " + input[1]);
+                            paxosQueueObj.transactionQueue.add(input);
+
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Invalid command.");
+                    }
+                } else if (input[0].equals("balance")) {
+                    System.out.println("Balance is: " + logObject.getBalance());
+                } else if (input[0].equals("fail")) {
+                    System.out.println("Failing...");
+                    fail();
+                } else if (input[0].equals("unfail")) {
+                    System.out.println("Unfailing...");
+                    unfail();
+                } else if (input[0].equals("print")) {
+                    logObject.printLog();
+                } else if (input[0].equals("heartbeat")) {
+                    System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
+                } else if (input[0].equals("printq")) {
+                    PaxosQueue.printQ();
+                } // added simply for testing 
+                else if (input[0].equals("send")) {
+                    // send message input[1] to server at port input[2]
+                    String server = input[2].substring(1, input[2].length() - 1);
+                    sendTo(input[1], server);
+                } else if (input[0].equals("quit")) {
+                    System.out.println("Quitting...");
+                    System.exit(0);
                 }
-            } else if (input[0].equals("balance")) {
-                System.out.println("Balance is: " + logObject.getBalance());
-            } else if (input[0].equals("fail")) {
-                System.out.println("Failing...");
-                fail();
-            } else if (input[0].equals("unfail")) {
-                System.out.println("Unfailing...");
-                unfail();
-            } else if (input[0].equals("print")) {
-                logObject.printLog();
-            } else if (input[0].equals("heartbeat")) {
-                System.out.println("LifeTable: " + Arrays.toString(HeartBeat.lifeTable));
-            } else if (input[0].equals("printq")) {
-                PaxosQueue.printQ();
-            } // added simply for testing 
-            else if (input[0].equals("send")) {
-                // send message input[1] to server at port input[2]
-                String server = input[2].substring(1, input[2].length() - 1);
-                sendTo(input[1], server);
-            } else if (input[0].equals("quit")) {
-                System.out.println("Quitting...");
-                System.exit(0);
             }
         }
     }
