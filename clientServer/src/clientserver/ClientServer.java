@@ -197,18 +197,23 @@ public class ClientServer implements Runnable {
         // Start the log thread
         logThread.start();
 
-        // Check for log file
+
 //        File f = new File(Log.path);
-//        if(f.exists() && !f.isDirectory()) {
+//        if (f.exists() && !f.isDirectory()) {
         sleep(3000);
         // if a log file is there
         ctrlc = 1;
-        System.out.println("Rebuilding from CTRL C failure/Starting up...");
+        System.out.println("Checking for previous log...");
         int size = Log.transactionLog.size();
-        System.out.println("local size of log: " + size);
-        String poll = "sizepoll " + serverId;
-        sendPollToAll(poll);
-//        }
+//        System.out.println("local size of log: " + size);
+        if (HeartBeat.numProc == 1) {
+            // rebuild from self
+            rebuildFromSelf();
+
+        } else {
+            String poll = "sizepoll " + serverId;
+            sendPollToAll(poll);
+        }
 
         
 
@@ -390,4 +395,37 @@ public class ClientServer implements Runnable {
         }
 
     }
+    public static void rebuildFromSelf() throws Exception {
+//        System.out.println("rebuilding from self");
+
+        File f = new File(Log.path);
+        if (f.exists() && !f.isDirectory()) {
+
+//            System.out.println("Reading from file");
+            // else rebuild from yourself
+            BufferedReader br = new BufferedReader(new FileReader(Log.path));
+            String line;
+
+            Log.currIndex = 0;
+
+            while ((line = br.readLine()) != null) {
+//                System.out.println("line: " + line);
+                // process the line.
+                String[] split = line.split(" ");
+
+                String nullString1 = "";
+                String nullString2 = "";
+                Log.transactionLog.add(nullString1);
+                Log.transactionLog.add(nullString2);
+                Log.transactionLog.add(Log.currIndex, line);
+                Log.currIndex++;
+                Log.updateBalance(split[0], Double.parseDouble(split[1]));
+
+            }
+            br.close();
+        }
+
+        System.out.println("Finished updating.");
+    }
+
 }

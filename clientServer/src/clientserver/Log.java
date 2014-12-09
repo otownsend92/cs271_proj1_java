@@ -25,10 +25,12 @@ import java.util.logging.Logger;
 public class Log {
 
     public static Vector<String> transactionLog = new Vector(200);
+     public static Vector<String> logToSend = new Vector(200);
 
     public static double balance;
     static String path = "./log.txt";
     static boolean append_to_file = true;
+      public static int currIndex = 0;
 
     public static void writeToFile(String textLine) throws IOException {
         FileWriter write;
@@ -83,7 +85,7 @@ public class Log {
         }
     }
 
-    public static void sendLog(String serverId) throws IOException, ClassNotFoundException {
+     public static void sendLog(String serverId) throws IOException, ClassNotFoundException {
 
         int s = Integer.parseInt(serverId);
         Socket connectionSocket = new Socket(ClientServer.serverIPs[s], ClientServer.logPort);
@@ -91,7 +93,19 @@ public class Log {
 
         OutputStream socketStream = connectionSocket.getOutputStream();
         ObjectOutput objectOutput = new ObjectOutputStream(socketStream);
-        objectOutput.writeObject(transactionLog);
+        
+        logToSend.removeAllElements();
+        
+        int j = 0;
+        for (int i = 0; i < currIndex; ++i) {
+            String val = transactionLog.elementAt(i);
+            if (!val.equals("")) {
+                logToSend.add(val);
+            }
+
+        }
+                
+        objectOutput.writeObject(logToSend);
 
         connectionSocket.close();
     }
