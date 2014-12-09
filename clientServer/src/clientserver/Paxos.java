@@ -269,7 +269,7 @@ public class Paxos {
 
                         try {
                             // I won
-                            System.out.println("We have a consensus, broadcasting out the accept");
+                            System.out.println("We have a consensus, broadcasting out the winMsg: " + winMsg);
                             ClientServer.sendToAll(winMsg);
                         } catch (Exception ex) {
                             System.out.println(ex);
@@ -403,7 +403,7 @@ public class Paxos {
         }
         
         try {
-            sleep(800);
+            sleep(1000);
         } catch (InterruptedException ex) {
             Logger.getLogger(Paxos.class.getName()).log(Level.SEVERE, null, ex);
         }
