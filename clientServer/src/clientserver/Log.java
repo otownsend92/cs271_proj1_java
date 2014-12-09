@@ -1,14 +1,23 @@
 package clientserver;
 
-
+import static clientserver.ClientServer.welcomeSocket;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,12 +25,10 @@ import java.util.logging.Logger;
 public class Log {
 
     public static Vector<String> transactionLog = new Vector(200);
-    public static Vector<String> logToSend = new Vector(200);
 
     public static double balance;
     static String path = "./log.txt";
     static boolean append_to_file = true;
-    public static int currIndex = 0;
 
     public static void writeToFile(String textLine) throws IOException {
         FileWriter write;
@@ -41,10 +48,7 @@ public class Log {
 //        val.amount = Double.parseDouble(message[2]);
 //        val.type = message[1];
         String entry = val.type + " " + val.amount;
-        String nullString1 = "";
-        String nullString2 = "";
         transactionLog.add(i, entry);
-        currIndex++;
         updateBalance(val.type, val.amount);
         try {
             writeToFile(entry);
@@ -71,17 +75,10 @@ public class Log {
         return balance;
     }
 
-    
     public static void printLog() {
-//        System.out.println("currIndex: " + currIndex);
-        int j = 0;
-        for (int i = 0; i < currIndex; ++i) {
+        for (int i = 0; i < transactionLog.size(); ++i) {
             String val = transactionLog.elementAt(i);
-            if (!val.equals("")) {
-                String[] split = val.split(" ");
-                System.out.println("Log " + j + ": " + split[0] + " " + split[1]);
-                j++;
-            }
+            System.out.println("Log " + i + ": " + val);
 
         }
     }
@@ -94,19 +91,7 @@ public class Log {
 
         OutputStream socketStream = connectionSocket.getOutputStream();
         ObjectOutput objectOutput = new ObjectOutputStream(socketStream);
-        
-        logToSend.removeAllElements();
-        
-        int j = 0;
-        for (int i = 0; i < currIndex; ++i) {
-            String val = transactionLog.elementAt(i);
-            if (!val.equals("")) {
-                logToSend.add(val);
-            }
-
-        }
-                
-        objectOutput.writeObject(logToSend);
+        objectOutput.writeObject(transactionLog);
 
         connectionSocket.close();
     }
@@ -116,44 +101,28 @@ public class Log {
         append_to_file = false;
         // fix balance
         balance = 0;
-        currIndex = 0;
         String block = "";
-//        System.out.println("TransLog size: " + transactionLog.size());
         for (int i = 0; i < transactionLog.size(); i++) {
-
             String trans = transactionLog.elementAt(i);
-            if (!trans.equals("")) {
-                
-//                System.out.println("TRANS rebuild: " + trans);
-                String[] split = trans.split(" ");
-                double amt = Double.parseDouble(split[1]);
-//                System.out.println("split: " + Arrays.toString(split));
-                
-                
-                if (split[0].equals("deposit")) {
-                    //deposit
-//                    System.out.println("DEPOSITING: " + amt);
-                    balance += amt;
+            String[] split = trans.split(" ");
+            double amt = Double.parseDouble(split[1]);
+            if (split[0].equals("deposit")) {
+                //deposit
+                balance += amt;
 
-                } else {
-                    //withdraw
-//                    System.out.println("WITHDRAWING: " + amt);
-                    balance -= amt;
-                }
-                if (i == transactionLog.size() - 1) {
-                    block += trans;
-                } else {
-                    block += trans + "\n";
-                }
-                
-                currIndex++;
+            } else {
+                //withdraw
+                balance -= amt;
+            }
+            if (i == transactionLog.size() - 1) {
+                block += trans;
+            } else {
+                block += trans + "\n";
             }
         }
         //write to log at once
         writeToFile(block);
         append_to_file = true;
         ClientServer.ctrlc = 0;
-        
-        System.out.println("Finished updating.");
     }
 }

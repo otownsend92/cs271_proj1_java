@@ -1,7 +1,7 @@
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * and open the template in the editor. test
  */
 package clientserver;
 
@@ -25,11 +25,11 @@ public class PaxosQueue {
 
     public static void printQ() {
 
-//        System.out.println("Printing QUEUE");
+        System.out.println("Printing QUEUE");
 
         for (int i = 0; i < transactionQueue.size(); ++i) {
             String[] val = transactionQueue.elementAt(i);
-//            System.out.println("Queue " + i + ": " + Arrays.toString(val));
+            System.out.println("Queue " + i + ": " + Arrays.toString(val));
 
         }
     }
@@ -40,9 +40,9 @@ public class PaxosQueue {
         if ((!transactionQueue.isEmpty()) && (!isProposing)) {
             if (!transactionQueue.isEmpty())  {
                 String[] newTrans = transactionQueue.firstElement();
-//                System.out.println(Arrays.toString(newTrans));
+                System.out.println(Arrays.toString(newTrans));
                 try {
-//                    System.out.println("Server " + ClientServer.serverId + " submitting to paxos from QUEUE. Trans: " + Arrays.toString(newTrans));
+                    System.out.println("Server " + ClientServer.serverId + " submitting to paxos from QUEUE. Trans: " + Arrays.toString(newTrans));
                     ClientServer.paxosObject.prepareMsg(newTrans);
                     isProposing = true;
                 } catch (Exception ex) {
