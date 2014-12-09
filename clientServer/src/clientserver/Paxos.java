@@ -378,7 +378,7 @@ public class Paxos {
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
 
-            Log.addToTransactionLog(acceptedVal, acceptedVal.logPosition);
+            Log.addToTransactionLog(acceptedVal);
             System.out.println("Decided on: " + acceptedVal.amount);
             finalAcceptBucket[serverIndex] = 0;
             leader = false;
