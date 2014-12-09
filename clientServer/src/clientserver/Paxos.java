@@ -107,7 +107,7 @@ public class Paxos {
         //String[] message = msg.split(" ");
         val.type = message[0];
         val.amount = Double.parseDouble(message[1]);
-        val.logPosition = Log.transactionLog.size();
+        val.logPosition = Log.currIndex;
         val.balNum = generateNum;
         val.balNumServerId = ClientServer.serverId;
 
@@ -385,7 +385,6 @@ public class Paxos {
 
             if ( (serverIndex == ClientServer.serverId) && (val.amount == acceptedVal.amount) ) {
                 ackCount = 0;
-                System.out.println("FH:LAHKL:SDL:ASJLKDAJLSKDJALS:DKLSD");
                 System.out.println("Accepting: " + acceptedVal.type + " " + acceptedVal.amount);
                 PaxosQueue.printQ();
                 ClientServer.paxosQueueObj.transactionQueue.removeElementAt(0);
@@ -399,6 +398,7 @@ public class Paxos {
             
             resetAcceptedVal();
             System.out.println("acceptedVal now: " + acceptedVal.type + " " + acceptedVal.amount);
+            System.out.println("Balance is : "+ Log.balance);
             System.out.println("========================== DONE WITH ROUND ========================== \n\n");
         }
         
