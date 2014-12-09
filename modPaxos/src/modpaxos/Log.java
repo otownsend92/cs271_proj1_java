@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 public class Log {
 
     public static Vector<String> transactionLog = new Vector(200);
-    public static Vector<String> sendLog = new Vector(200);
+    public static Vector<String> logToSend = new Vector(200);
 
     public static double balance;
     static String path = "./log.txt";
@@ -96,18 +96,18 @@ public class Log {
         OutputStream socketStream = connectionSocket.getOutputStream();
         ObjectOutput objectOutput = new ObjectOutputStream(socketStream);
         
-        sendLog.removeAllElements();
+        logToSend.removeAllElements();
         
         int j = 0;
         for (int i = 0; i < currIndex; ++i) {
             String val = transactionLog.elementAt(i);
             if (!val.equals("")) {
-                sendLog.add(val);
+                logToSend.add(val);
             }
 
         }
                 
-        objectOutput.writeObject(sendLog);
+        objectOutput.writeObject(logToSend);
 
         connectionSocket.close();
     }
