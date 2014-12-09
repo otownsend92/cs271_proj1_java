@@ -378,23 +378,49 @@ public class ClientServer implements Runnable {
     public static void requestLog() throws Exception {
 
         int chosenServer = serverId;
-        System.out.println(Arrays.toString(logSizes));
+//        System.out.println(Arrays.toString(logSizes));
         for (int i = 0; i < logSizes.length; i++) {
             if (logSizes[i] > logSizes[serverId]) { //Log.transactionLog.size()) {
                 chosenServer = i;
             }
         }
         if (chosenServer != serverId) {
-            System.out.println("Requesting from: " + chosenServer);
+//            System.out.println("Requesting from: " + chosenServer);
             // request log from other server
             String requestLog = "requestlog " + serverId;
             sendTo(requestLog, Integer.toString(chosenServer));
         } else {
-            System.out.println("rebuilding from self");
-            // else rebuild from yourself
+//            System.out.println("rebuilding from self");
+
+            File f = new File(Log.path);
+            if (f.exists() && !f.isDirectory()) {
+
+//                System.out.println("Reading from file");
+                // else rebuild from yourself
+                BufferedReader br = new BufferedReader(new FileReader(Log.path));
+                String line;
+
+                Log.currIndex = 0;
+                while ((line = br.readLine()) != null) {
+//                    System.out.println("line: " + line);
+                    // process the line.
+                    String[] split = line.split(" ");
+
+                    String nullString1 = "";
+                    String nullString2 = "";
+                    Log.transactionLog.add(nullString1);
+                    Log.transactionLog.add(nullString2);
+                    Log.transactionLog.add(Log.currIndex, line);
+                    Log.currIndex++;
+                    Log.updateBalance(split[0], Double.parseDouble(split[1]));
+
+                }
+                br.close();
+            }
         }
 
     }
+    
     public static void rebuildFromSelf() throws Exception {
 //        System.out.println("rebuilding from self");
 
