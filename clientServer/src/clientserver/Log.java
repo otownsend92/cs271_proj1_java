@@ -42,13 +42,13 @@ public class Log {
     /*
      Add transaction to log with transaction type and amount
      */
-    public static void addToTransactionLog(Paxos.Value val) {
+    public static void addToTransactionLog(Paxos.Value val, int i) {
 
 //        Paxos.Value val = null;
 //        val.amount = Double.parseDouble(message[2]);
 //        val.type = message[1];
         String entry = val.type + " " + val.amount + " " + val.logPosition;
-        transactionLog.add(entry);
+        transactionLog.add(i, entry);
         updateBalance(val.type, val.amount);
         try {
             writeToFile(entry);

@@ -35,7 +35,6 @@ public class PaxosQueue {
 
         // if there are items in the queue and if Paxos isn't currently proposing a value, then propose value
         if ((!transactionQueue.isEmpty()) && (!isProposing)) {
-            if (!transactionQueue.isEmpty()) {
                 String[] newTrans = transactionQueue.firstElement();
                 System.out.println(Arrays.toString(newTrans));
                 try {
@@ -44,7 +43,7 @@ public class PaxosQueue {
                 } catch (Exception ex) {
                     System.out.println("queueWatcher:" + ex);
                 }
-            }
+            
         }
     }
 

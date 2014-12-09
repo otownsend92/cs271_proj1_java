@@ -179,6 +179,11 @@ public class ClientServer implements Runnable {
                 while (true) {
 //                    System.out.println("Starting queuewatcher thread");
                     paxosQueueObj.queueWatcher();
+                    try {
+                        sleep(1000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ClientServer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         };

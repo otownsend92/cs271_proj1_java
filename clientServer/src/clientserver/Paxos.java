@@ -18,6 +18,12 @@ public class Paxos {
         int balNum = -1;
         int balNumServerId = -1;
     }
+    
+    public class Bucket {
+
+        int numAccepts;
+        Value v;
+    }
 
     // keep track of number of acks - check when matches majority value
     double ackCount = 0;
@@ -34,6 +40,8 @@ public class Paxos {
     // never initialize
     Value blankVal = new Value();
     // counter for final accepts
+    
+    public static Bucket[] ackBucket = new Bucket[5];
 
     int numFinalA = 0;
     public static Vector<Value> ackedValues = new Vector();
@@ -75,12 +83,12 @@ public class Paxos {
      Called when leader loses election. Will generate a new proposal number (prepareMsg)
      and use the same Value object val in a new round of prepares.
      */
-    public void regeneratePrepare() throws Exception {
-        String prepareMsg = "prepare " + generateNum + " " + ClientServer.serverId;
-        ClientServer.sendToAll(prepareMsg);
-
-        generateNum++;
-    }
+//    public void regeneratePrepare() throws Exception {
+//        String prepareMsg = "prepare " + generateNum + " " + ClientServer.serverId;
+//        ClientServer.sendToAll(prepareMsg);
+//
+//        generateNum++;
+//    }
 
     /*
      LISTENER'S PERSPECTIVE
@@ -120,7 +128,7 @@ public class Paxos {
     public void handlePrepare(String[] message) {
         int ballotNum = Integer.parseInt(message[1]);
         int ballotNumServerId = Integer.parseInt(message[2]);
-        if ((ballotNum > minBallotNum) || ((ballotNum == minBallotNum) && (minBallotNumServerId >= ballotNumServerId))) {
+        if ((ballotNum > minBallotNum) || ((ballotNum == minBallotNum) && (minBallotNumServerId > ballotNumServerId))) {
             minBallotNum = ballotNum;
             minBallotNumServerId = ballotNumServerId;
             System.out.println("IFSTATEMENT");
@@ -190,7 +198,7 @@ public class Paxos {
 //        System.out.println("blankVal.balNum: " + blankVal.balNum);
 //        System.out.println("highestVal.balNumServerId: " + highestVal.balNumServerId);
 //        System.out.println("blankVal.balNumServerId: " + blankVal.balNumServerId);
-            if ((majority > 0.5) && (HeartBeat.numProc >= 3)) {
+            if ((majority > 0.5) && (HeartBeat.numProc >= 3) ) {
                 if (phase2) {
 
                 } else {
@@ -202,7 +210,7 @@ public class Paxos {
 
                 // if there was an already accepted value, propose it
                     // lost this round
-                    if (!valsAreEqual(highestVal, blankVal)) {
+                    if ( !highestVal.type.equals("blank")) {   // !valsAreEqual(highestVal, blankVal)) {
 
                         String concedeMsg = "accept "
                                 + generateNum + " "
@@ -218,7 +226,7 @@ public class Paxos {
                             ackCount = 0;
                             // Try to prepare another proposal
                             generateNum = receivedBalNum + 1;
-                            regeneratePrepare();
+//                            regeneratePrepare();
                         } catch (Exception ex) {
                             System.out.println(ex);
                         }
@@ -303,7 +311,7 @@ public class Paxos {
                 // Try to prepare another proposal
                 ackCount = 0;
                 generateNum = receivedBalNum + 1;
-                regeneratePrepare();
+//                regeneratePrepare();
             } catch (Exception ex) {
                 System.out.println(ex);
             }
@@ -359,13 +367,16 @@ public class Paxos {
         int receivedBalNumServerId = Integer.parseInt(message[2]);
 
         // compare ballot number(receivedBalNum) and the server ID(receivedBalNumServerId
-        if ((receivedBalNum >= minBallotNum)
+        if ((receivedBalNum > minBallotNum)
                 || ((receivedBalNum == minBallotNum) && (receivedBalNumServerId >= minBallotNumServerId))) {
             acceptedVal.type = message[3];
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
             acceptedVal.balNum = receivedBalNum;
             acceptedVal.balNumServerId = receivedBalNumServerId;
+            
+            minBallotNum = acceptedVal.balNum;
+            minBallotNumServerId = acceptedVal.balNumServerId;
 
             String cohortAcceptMsg = "finalaccept "
                     + receivedBalNum + " "
@@ -386,25 +397,30 @@ public class Paxos {
 
     public void handleFinalAccept(String[] message) {
         // We're done if we get this step (if we get final accepts from ALL servers), save the final value
-        numFinalA++;
-        if (numFinalA == HeartBeat.numProc) {
+//        numFinalA++;
+        int serverIndex = Integer.parseInt(message[2]);
+        ackBucket[serverIndex].numAccepts++;
+
+        System.out.println("Bucket of : " + ClientServer.serverId + " " + Arrays.toString(ackBucket));
+        
+        if (ackBucket[serverIndex].numAccepts == HeartBeat.numProc) {
             acceptedVal.type = message[3];
             acceptedVal.amount = Double.parseDouble(message[4]);
             acceptedVal.logPosition = Integer.parseInt(message[5]);
 
-            Log.addToTransactionLog(acceptedVal);
+            Log.addToTransactionLog(acceptedVal, acceptedVal.logPosition);
             leader = false;
 
-            if ((acceptedVal.type.equals(val.type))
-                    && (acceptedVal.amount == val.amount)
-                    && (acceptedVal.logPosition == val.logPosition)) {
+            if (serverIndex == ClientServer.serverId) {
                 System.out.println("FH:LAHKL:SDL:ASJLKDAJLSKDJALS:DKLSD");
+                System.out.println("Accepting: " + acceptedVal.type + " " + acceptedVal.amount);
                 PaxosQueue.printQ();
                 ClientServer.paxosQueueObj.isProposing = false;
                 ClientServer.paxosQueueObj.transactionQueue.removeElementAt(0);
+                PaxosQueue.printQ();
             }
             // reset for next iteration
-            numFinalA = 0;
+            ackBucket[serverIndex].numAccepts = 0;
             phase2 = false;
             System.out.println("Decided on: " + acceptedVal.amount);
             acceptedVal = blankVal;
