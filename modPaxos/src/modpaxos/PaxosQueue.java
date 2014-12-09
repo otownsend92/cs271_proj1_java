@@ -24,7 +24,7 @@ public class PaxosQueue {
     public static void printQ() {
         for (int i = 0; i < transactionQueue.size(); ++i) {
             String[] val = transactionQueue.elementAt(i);
-            System.out.println("Queue " + i + ": " + Arrays.toString(val));
+//            System.out.println("Queue " + i + ": " + Arrays.toString(val));
         }
     }
 
@@ -34,7 +34,7 @@ public class PaxosQueue {
         if ((!transactionQueue.isEmpty()) && (!isProposing) && (HeartBeat.leaderId != ClientServer.serverId)) {
             if (!transactionQueue.isEmpty()) {
                 String[] newTrans = transactionQueue.firstElement();
-                System.out.println(Arrays.toString(newTrans));
+//                System.out.println(Arrays.toString(newTrans));
 
                 // bypass acks, always leader
                 try {
@@ -51,7 +51,7 @@ public class PaxosQueue {
         } else if ((!transactionQueue.isEmpty()) && (!isProposing) && (HeartBeat.leaderId == ClientServer.serverId)) {
             if (!transactionQueue.isEmpty()) {
                 String trans[] = transactionQueue.firstElement();
-                System.out.println("TRANS: "+Arrays.toString(trans));
+//                System.out.println("TRANS: "+Arrays.toString(trans));
                 String winMsg = "accept "
                         + trans[0] + " "
                         + trans[1] + " "

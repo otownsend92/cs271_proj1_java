@@ -90,7 +90,7 @@ public class Paxos {
                 + acceptedVal.logPosition;
 
         try {
-            System.out.println("Broadcasting final accept");
+//            System.out.println("Broadcasting final accept");
             ClientServer.sendToAll(cohortAcceptMsg);
         } catch (Exception ex) {
             System.out.println(ex);
@@ -101,7 +101,7 @@ public class Paxos {
     public void handleFinalAccept(String[] message) {
         // We're done if we get this step (if we get final accepts from ALL servers), save the final value
         numFinalA++;
-        System.out.println("numfinala: " + numFinalA + "numproc: " + HeartBeat.numProc);
+//        System.out.println("numfinala: " + numFinalA + "numproc: " + HeartBeat.numProc);
         if (numFinalA == HeartBeat.numProc) {
             numFinalA = 0;
             acceptedVal.type = message[1];
@@ -112,14 +112,13 @@ public class Paxos {
                 System.out.println("Insufficient funds.");
             } else {
                 Log.addToTransactionLog(acceptedVal);
-                System.out.println("FH:LAHKL:SDL:ASJLKDAJLSKDJALS:DKLSD");
                 PaxosQueue.printQ();
                 ClientServer.paxosQueueObj.isProposing = false;
                 if (HeartBeat.leaderId == ClientServer.serverId) {
                     ClientServer.paxosQueueObj.transactionQueue.removeElementAt(0);
                 }
 
-                System.out.println("Decided on: " + acceptedVal.amount);
+//                System.out.println("Decided on: " + acceptedVal.amount);
             }
 
         }
@@ -138,15 +137,15 @@ public class Paxos {
         int size = Integer.parseInt(response[1]);
         int server = Integer.parseInt(response[2]);
 
-        System.out.println("Server: " + server + " size is: " + size);
+//        System.out.println("Server: " + server + " size is: " + size);
 
         ClientServer.logSizes[server] = size;
 
         ClientServer.heardFrom++;
-        System.out.println("heardfrom: " + ClientServer.heardFrom);
-        System.out.println("numproc: " + HeartBeat.numProc);
+//        System.out.println("heardfrom: " + ClientServer.heardFrom);
+//        System.out.println("numproc: " + HeartBeat.numProc);
         if (ClientServer.heardFrom == HeartBeat.numProc - ClientServer.ctrlc) {
-            System.out.println("About to enter reqlog");
+//            System.out.println("About to enter reqlog");
             ClientServer.requestLog();
             ClientServer.heardFrom = 0;
         }
@@ -159,9 +158,9 @@ public class Paxos {
         if (ClientServer.serverId == HeartBeat.leaderId) {
             String s = message[1] + " " + message[2];
             String[] d = s.split(" ");
-            System.out.println("trans from cohort: " + Arrays.toString(d));
+//            System.out.println("trans from cohort: " + Arrays.toString(d));
             PaxosQueue.transactionQueue.add(d);
-            System.out.println("Handle cohort");
+//            System.out.println("Handle cohort");
         }
     }
 

@@ -41,9 +41,9 @@ public class ClientServer implements Runnable {
 //        "ec2-54-174-201-123.compute-1.amazonaws.com",
 //        "ec2-54-174-164-18.compute-1.amazonaws.com"
 //    };
-    public static int[] serverPorts = {12000, 12001, 12002, 12003, 12004};
+    public static int[] serverPorts = {12700, 12701, 12702, 12703, 12704};
     public static int[] logSizes = {0, 0, 0, 0, 0};
-    public static int logPort = 1210;
+    public static int logPort = 12205;
 
     static boolean listenerTrue = true;
 
@@ -129,7 +129,7 @@ public class ClientServer implements Runnable {
                             Socket newSock = new Socket();
                             newSock.setSoTimeout(100);
                             newSock = logSocket.accept();
-                            System.out.println("Connected to log port");
+//                            System.out.println("Connected to log port");
                             // now can receive data
 
                             InputStream socketStream = newSock.getInputStream();
@@ -138,7 +138,7 @@ public class ClientServer implements Runnable {
                             newSock.close();
 
                             Log.transactionLog = receivedLog;
-                            System.out.println("This is the received catch-up log: " + Log.transactionLog);
+//                            System.out.println("This is the received catch-up log: " + Log.transactionLog);
                             Log.rebuildLog();
 
                         } catch (IOException ex) {
@@ -195,15 +195,20 @@ public class ClientServer implements Runnable {
         // Check for log file
 //        File f = new File(Log.path);
 //        if (f.exists() && !f.isDirectory()) {
-            sleep(2000);
-            // if a log file is there
-            ctrlc = 1;
-            System.out.println("Rebuilding from CTRL C failure/Starting up...");
-            int size = Log.transactionLog.size();
-            System.out.println("local size of log: " + size);
+        sleep(3000);
+        // if a log file is there
+        ctrlc = 1;
+        System.out.println("Checking for previous log...");
+        int size = Log.transactionLog.size();
+//        System.out.println("local size of log: " + size);
+        if (HeartBeat.numProc == 1) {
+            // rebuild from self
+            rebuildFromSelf();
+
+        } else {
             String poll = "sizepoll " + serverId;
             sendPollToAll(poll);
-//        }
+        }
 
         // Start main thread for input
         while (true) {
@@ -222,13 +227,13 @@ public class ClientServer implements Runnable {
                     System.out.println("Not enough servers");
                 } else {
                     try {
-                        
+
                         input[1] = (input[1].substring(1, input[1].length() - 1));
                         System.out.println("Depositing: " + input[1]);
-                        
+
                         // Add to log immediately
-                        Log.transactionLog.add("deposit "+input[1]+" "+Log.transactionLog.size());
-                        
+                        Log.transactionLog.add("deposit " + input[1] + " " + Log.transactionLog.size());
+
                         // Adding to queue
                         paxosQueueObj.transactionQueue.add(input);
                         for (int i = 0; i < paxosQueueObj.transactionQueue.size(); i++) {
@@ -313,17 +318,17 @@ public class ClientServer implements Runnable {
     }
 
     public static void fail() {
-        System.out.println("USER FAIL: Stopping the listener thread.");
+//        System.out.println("USER FAIL: Stopping the listener thread.");
         listenerTrue = false;
     }
 
     public static void unfail() throws Exception {
-        System.out.println("USER UNFAIL: Starting the listener thread again.");
+//        System.out.println("USER UNFAIL: Starting the listener thread again.");
         // begin listening again
         listenerTrue = true;
         // get size from local log
         int size = Log.transactionLog.size();
-        System.out.println("local size of log: " + size);
+//        System.out.println("local size of log: " + size);
         // poll others for largest size
         String pollMsg = "sizepoll " + serverId;
         sendPollToAll(pollMsg);
@@ -335,13 +340,11 @@ public class ClientServer implements Runnable {
         int p = serverPorts[server_id];
         String serverName = serverIPs[server_id];
 
-//        System.out.println("Sending " + m + " to: " + serverName + " on port: " + p);
         Socket clientSocket = new Socket(serverName, p); //serverPorts[leader]);
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         outToServer.writeBytes(m);
         clientSocket.close();
-//        System.out.println("Finished sending.");
 
     }
 
@@ -349,8 +352,6 @@ public class ClientServer implements Runnable {
 
         for (int i = 0; i < 5; ++i) {
             if (HeartBeat.lifeTable[i] == 1) {
-//                System.out.println("Heartbeat at: " + i);
-//                System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
                 int p = serverPorts[i];
                 Socket clientSocket = new Socket(serverIPs[i], p);
                 DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -367,8 +368,6 @@ public class ClientServer implements Runnable {
             if (HeartBeat.lifeTable[i] == 1) {
                 if (i == serverId) {
                 } else {
-//                    System.out.println("Heartbeat at: " + i);
-//                    System.out.println("Sending to" + serverIPs[i] + ":" + serverPorts[i]);
                     int p = serverPorts[i];
                     Socket clientSocket = new Socket(serverIPs[i], p);
                     DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -383,21 +382,80 @@ public class ClientServer implements Runnable {
     public static void requestLog() throws Exception {
 
         int chosenServer = serverId;
-        System.out.println(Arrays.toString(logSizes));
+//        System.out.println(Arrays.toString(logSizes));
         for (int i = 0; i < logSizes.length; i++) {
             if (logSizes[i] > logSizes[serverId]) { //Log.transactionLog.size()) {
                 chosenServer = i;
             }
         }
         if (chosenServer != serverId) {
-            System.out.println("Requesting from: " + chosenServer);
+//            System.out.println("Requesting from: " + chosenServer);
             // request log from other server
             String requestLog = "requestlog " + serverId;
             sendTo(requestLog, Integer.toString(chosenServer));
         } else {
-            System.out.println("rebuilding from self");
-            // else rebuild from yourself
+//            System.out.println("rebuilding from self");
+
+            File f = new File(Log.path);
+            if (f.exists() && !f.isDirectory()) {
+
+//                System.out.println("Reading from file");
+                // else rebuild from yourself
+                BufferedReader br = new BufferedReader(new FileReader(Log.path));
+                String line;
+
+                Log.currIndex = 0;
+                while ((line = br.readLine()) != null) {
+//                    System.out.println("line: " + line);
+                    // process the line.
+                    String[] split = line.split(" ");
+
+                    String nullString1 = "";
+                    String nullString2 = "";
+                    Log.transactionLog.add(nullString1);
+                    Log.transactionLog.add(nullString2);
+                    Log.transactionLog.add(Log.currIndex, line);
+                    Log.currIndex++;
+                    Log.updateBalance(split[0], Double.parseDouble(split[1]));
+
+                }
+                br.close();
+            }
         }
 
     }
+
+    public static void rebuildFromSelf() throws Exception {
+//        System.out.println("rebuilding from self");
+
+        File f = new File(Log.path);
+        if (f.exists() && !f.isDirectory()) {
+
+//            System.out.println("Reading from file");
+            // else rebuild from yourself
+            BufferedReader br = new BufferedReader(new FileReader(Log.path));
+            String line;
+
+            Log.currIndex = 0;
+
+            while ((line = br.readLine()) != null) {
+//                System.out.println("line: " + line);
+                // process the line.
+                String[] split = line.split(" ");
+
+                String nullString1 = "";
+                String nullString2 = "";
+                Log.transactionLog.add(nullString1);
+                Log.transactionLog.add(nullString2);
+                Log.transactionLog.add(Log.currIndex, line);
+                Log.currIndex++;
+                Log.updateBalance(split[0], Double.parseDouble(split[1]));
+
+            }
+            br.close();
+        }
+
+        System.out.println("Finished updating.");
+    }
+
 }
